@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import require_permission
 from app.db.session import get_db
 from app.models import Customer, User
 from app.schemas import CustomerCreate, CustomerResponse, CustomerUpdate
@@ -11,7 +11,7 @@ router = APIRouter(prefix="/customers", tags=["Customers"])
 
 
 @router.get("", response_model=list[CustomerResponse])
-def list_customers(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def list_customers(db: Session = Depends(get_db), _: User = Depends(require_permission("customers:read"))):
     return db.query(Customer).filter(Customer.is_active == True).order_by(Customer.id.desc()).all()
 
 
@@ -20,7 +20,7 @@ def create_customer(
     data: CustomerCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("customers:write")),
 ):
     if db.query(Customer).filter(Customer.dni == data.dni).first():
         raise HTTPException(status_code=400, detail="DNI ya registrado")
@@ -33,7 +33,7 @@ def create_customer(
 
 
 @router.get("/{customer_id}", response_model=CustomerResponse)
-def get_customer(customer_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def get_customer(customer_id: int, db: Session = Depends(get_db), _: User = Depends(require_permission("customers:read"))):
     customer = db.query(Customer).filter(Customer.id == customer_id, Customer.is_active == True).first()
     if not customer:
         raise HTTPException(status_code=404, detail="Cliente no encontrado")
@@ -46,7 +46,7 @@ def update_customer(
     data: CustomerUpdate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("customers:write")),
 ):
     customer = db.query(Customer).filter(Customer.id == customer_id, Customer.is_active == True).first()
     if not customer:
@@ -65,7 +65,7 @@ def delete_customer(
     customer_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("customers:write")),
 ):
     customer = db.query(Customer).filter(Customer.id == customer_id, Customer.is_active == True).first()
     if not customer:

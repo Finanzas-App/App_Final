@@ -7,6 +7,7 @@ from typing import Literal
 
 GraceType = Literal["none", "total", "partial"]
 RateType = Literal["TEA", "TNA"]
+BalloonBase = Literal["vehicle", "financed"]
 
 
 @dataclass
@@ -18,10 +19,12 @@ class ScheduleRow:
     amortization: float
     insurance_vehicle: float
     insurance_life: float
+    portes: float
     payment: float
     balloon_payment: float
     closing_balance: float
     is_grace_period: bool
+    payment_status: str = "pending"
 
 
 @dataclass
@@ -68,6 +71,16 @@ def french_payment_with_balloon(principal: float, rate: float, n: int, balloon: 
     return round_money(adjusted_principal * factor)
 
 
+def calculate_balloon_amount(
+    vehicle_price: float,
+    amount_financed: float,
+    balloon_percent: float,
+    balloon_base: BalloonBase = "vehicle",
+) -> float:
+    base = vehicle_price if balloon_base == "vehicle" else amount_financed
+    return round_money(base * balloon_percent)
+
+
 def calculate_irr(cash_flows: list[float], guess: float = 0.01, max_iter: int = 1000, tol: float = 1e-8) -> float:
     """TIR mensual por método de Newton-Raphson."""
     rate = guess
@@ -94,6 +107,7 @@ def validate_simulation_inputs(
     term_months: int,
     grace_months: int,
     balloon_percent: float,
+    balloon_base: BalloonBase = "vehicle",
 ) -> None:
     if down_payment >= vehicle_price:
         raise ValueError("La cuota inicial debe ser menor al precio del vehículo")
@@ -101,10 +115,10 @@ def validate_simulation_inputs(
         raise ValueError("El plazo debe ser mayor a los meses de gracia")
     if rate_value <= 0:
         raise ValueError("La tasa debe ser mayor a cero")
-    balloon_amount = vehicle_price * balloon_percent
+    amount_financed = vehicle_price - down_payment
+    balloon_amount = calculate_balloon_amount(vehicle_price, amount_financed, balloon_percent, balloon_base)
     if balloon_amount >= vehicle_price:
         raise ValueError("La cuota balón debe ser menor al precio del vehículo")
-    amount_financed = vehicle_price - down_payment
     if amount_financed <= 0:
         raise ValueError("El monto financiado debe ser mayor a cero")
 
@@ -118,17 +132,26 @@ def run_simulation(
     grace_type: GraceType = "none",
     grace_months: int = 0,
     balloon_percent: float = 0.25,
+    balloon_base: BalloonBase = "vehicle",
     capitalization: int | None = None,
     insurance_vehicle: float = 0.0,
     insurance_life: float = 0.0,
+    include_insurance_vehicle: bool = True,
+    include_insurance_life: bool = True,
+    portes: float = 0.0,
     commission: float = 0.0,
     cok_annual: float = 0.10,
     start_date: datetime | None = None,
 ) -> SimulationResult:
-    validate_simulation_inputs(vehicle_price, down_payment, rate_value, term_months, grace_months, balloon_percent)
+    validate_simulation_inputs(
+        vehicle_price, down_payment, rate_value, term_months, grace_months, balloon_percent, balloon_base
+    )
 
     amount_financed = round_money(vehicle_price - down_payment)
-    balloon_amount = round_money(vehicle_price * balloon_percent)
+    balloon_amount = calculate_balloon_amount(vehicle_price, amount_financed, balloon_percent, balloon_base)
+
+    ins_v = insurance_vehicle if include_insurance_vehicle else 0.0
+    ins_l = insurance_life if include_insurance_life else 0.0
 
     if rate_type == "TNA":
         if not capitalization or capitalization <= 0:
@@ -145,7 +168,6 @@ def run_simulation(
     total_interest = 0.0
     debtor_flows: list[float] = [amount_financed]
 
-    # Periodos de gracia
     for g in range(1, grace_months + 1):
         interest = round_money(balance * tem)
         total_interest += interest
@@ -155,7 +177,7 @@ def run_simulation(
             balance = round_money(balance * (1 + tem))
         elif grace_type == "partial":
             amortization = 0.0
-            payment = round_money(interest + insurance_vehicle + insurance_life)
+            payment = round_money(interest + ins_v + ins_l + portes)
         else:
             amortization = 0.0
             payment = 0.0
@@ -169,8 +191,9 @@ def run_simulation(
                 opening_balance=round_money(balance if grace_type != "total" else balance / (1 + tem)),
                 interest=interest,
                 amortization=amortization,
-                insurance_vehicle=insurance_vehicle,
-                insurance_life=insurance_life,
+                insurance_vehicle=ins_v,
+                insurance_life=ins_l,
+                portes=portes,
                 payment=payment,
                 balloon_payment=0.0,
                 closing_balance=balance if grace_type == "total" else round_money(balance),
@@ -181,7 +204,6 @@ def run_simulation(
             schedule[-1].opening_balance = round_money(balance / (1 + tem))
             schedule[-1].closing_balance = balance
 
-    # Recalcular cuota francesa para meses restantes
     remaining_months = term_months - grace_months
     monthly_payment = french_payment_with_balloon(balance, tem, remaining_months, balloon_amount)
 
@@ -192,11 +214,11 @@ def run_simulation(
         amortization = round_money(monthly_payment - interest) if not is_last else round_money(opening)
         if is_last:
             balloon_pay = balloon_amount
-            payment = round_money(interest + amortization + insurance_vehicle + insurance_life + balloon_pay)
+            payment = round_money(interest + amortization + ins_v + ins_l + portes + balloon_pay)
             closing = 0.0
         else:
             balloon_pay = 0.0
-            payment = round_money(monthly_payment + insurance_vehicle + insurance_life)
+            payment = round_money(monthly_payment + ins_v + ins_l + portes)
             closing = round_money(opening - amortization)
 
         total_interest += interest
@@ -210,8 +232,9 @@ def run_simulation(
                 opening_balance=opening,
                 interest=interest,
                 amortization=amortization,
-                insurance_vehicle=insurance_vehicle,
-                insurance_life=insurance_life,
+                insurance_vehicle=ins_v,
+                insurance_life=ins_l,
+                portes=portes,
                 payment=payment,
                 balloon_payment=balloon_pay,
                 closing_balance=closing,

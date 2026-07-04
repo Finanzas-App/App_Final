@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import require_permission
 from app.db.session import get_db
 from app.models import User, Vehicle
 from app.schemas import VehicleCreate, VehicleResponse, VehicleUpdate
@@ -11,7 +11,7 @@ router = APIRouter(prefix="/vehicles", tags=["Vehicles"])
 
 
 @router.get("", response_model=list[VehicleResponse])
-def list_vehicles(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def list_vehicles(db: Session = Depends(get_db), _: User = Depends(require_permission("vehicles:read"))):
     return db.query(Vehicle).filter(Vehicle.is_active == True).order_by(Vehicle.id.desc()).all()
 
 
@@ -20,7 +20,7 @@ def create_vehicle(
     data: VehicleCreate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("vehicles:write")),
 ):
     vehicle = Vehicle(**data.model_dump())
     db.add(vehicle)
@@ -31,7 +31,7 @@ def create_vehicle(
 
 
 @router.get("/{vehicle_id}", response_model=VehicleResponse)
-def get_vehicle(vehicle_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def get_vehicle(vehicle_id: int, db: Session = Depends(get_db), _: User = Depends(require_permission("vehicles:read"))):
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id, Vehicle.is_active == True).first()
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehículo no encontrado")
@@ -44,7 +44,7 @@ def update_vehicle(
     data: VehicleUpdate,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("vehicles:write")),
 ):
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id, Vehicle.is_active == True).first()
     if not vehicle:
@@ -63,7 +63,7 @@ def delete_vehicle(
     vehicle_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_permission("vehicles:write")),
 ):
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id, Vehicle.is_active == True).first()
     if not vehicle:

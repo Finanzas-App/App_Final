@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import require_permission
 from app.db.session import get_db
 from app.models import Application, Customer, Simulation, User, Vehicle
 from app.schemas import DashboardSummary
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 
 @router.get("/summary", response_model=DashboardSummary)
-def dashboard_summary(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+def dashboard_summary(db: Session = Depends(get_db), _: User = Depends(require_permission("dashboard:read"))):
     total_financed = db.query(func.coalesce(func.sum(Simulation.amount_financed), 0)).scalar() or 0
     active_simulations = db.query(Simulation).filter(Simulation.status == "active").count()
     total_customers = db.query(Customer).filter(Customer.is_active == True).count()

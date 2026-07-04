@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_permission
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.db.session import get_db
 from app.models import User
@@ -12,7 +12,12 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def register(data: UserCreate, request: Request, db: Session = Depends(get_db)):
+def register(
+    data: UserCreate,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("users:manage")),
+):
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=400, detail="El correo ya está registrado")
     user = User(
@@ -24,7 +29,7 @@ def register(data: UserCreate, request: Request, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
-    log_audit(db, user.id, "CREATE", "user", user.id, None, {"email": user.email}, request)
+    log_audit(db, current_user.id, "CREATE", "user", user.id, None, {"email": user.email, "role": user.role}, request)
     return user
 
 
@@ -44,3 +49,11 @@ def login(data: LoginRequest, request: Request, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserResponse)
 def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.get("/users", response_model=list[UserResponse])
+def list_users(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission("users:manage")),
+):
+    return db.query(User).filter(User.is_active == True).order_by(User.id).all()

@@ -2,6 +2,156 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+@layer base {
+  body {
+    @apply font-sans antialiased text-slate-800 bg-surface-muted;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white
+      bg-gradient-to-r from-brand-600 to-brand-700 shadow-soft
+      hover:from-brand-700 hover:to-brand-800 hover:shadow-glow
+      active:scale-[0.98] transition-all duration-200
+      disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium
+      bg-white text-slate-700 border border-slate-200 shadow-sm
+      hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] transition-all duration-200
+      disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
+      text-slate-600 hover:bg-slate-100 transition-colors;
+  }
+
+  .btn-danger-ghost {
+    @apply inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-sm font-medium
+      text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors;
+  }
+
+  .card {
+    @apply bg-white rounded-xl sm:rounded-2xl border border-slate-100 shadow-card;
+  }
+
+  .card-header {
+    @apply px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100;
+  }
+
+  .card-body {
+    @apply p-6;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 text-sm
+      placeholder:text-slate-400
+      focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500
+      transition-all duration-200;
+  }
+
+  .input-with-icon {
+    @apply input-field pl-11;
+  }
+
+  .label-field {
+    @apply block text-sm font-medium text-slate-600 mb-1.5;
+  }
+
+  .table-wrap {
+    @apply card overflow-hidden;
+  }
+
+  .table-scroll {
+    @apply overflow-x-auto overscroll-x-contain;
+  }
+
+  .table-wrap table {
+    @apply w-full text-sm min-w-[640px];
+  }
+
+  .table-wrap thead {
+    @apply bg-slate-50/80 border-b border-slate-100;
+  }
+
+  .table-wrap th {
+    @apply text-left px-3 sm:px-6 py-3 sm:py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider whitespace-nowrap;
+  }
+
+  .table-wrap tbody tr {
+    @apply border-b border-slate-50 hover:bg-brand-50/40 transition-colors;
+  }
+
+  .table-wrap td {
+    @apply px-3 sm:px-6 py-3 sm:py-4 text-slate-700;
+  }
+
+  .form-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-4;
+  }
+
+  .form-grid-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold;
+  }
+
+  .badge-blue { @apply badge bg-brand-50 text-brand-700; }
+  .badge-green { @apply badge bg-emerald-50 text-emerald-700; }
+  .badge-amber { @apply badge bg-amber-50 text-amber-700; }
+  .badge-red { @apply badge bg-red-50 text-red-700; }
+  .badge-purple { @apply badge bg-purple-50 text-purple-700; }
+  .badge-gray { @apply badge bg-slate-100 text-slate-600; }
+
+  .stat-icon {
+    @apply w-11 h-11 rounded-xl flex items-center justify-center;
+  }
+
+  .page-enter {
+    @apply animate-slide-up;
+  }
+
+  .input-field-error {
+    @apply border-red-300 bg-red-50/40 focus:ring-red-500/30 focus:border-red-500;
+  }
+
+  .field-error {
+    @apply text-xs text-red-600 mt-1.5 font-medium flex items-center gap-1;
+  }
+
+  .form-alert-error {
+    @apply p-3.5 bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl;
+  }
+
+  .form-alert-success {
+    @apply p-3.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm rounded-xl;
+  }
+
+  .form-alert-warning {
+    @apply p-3.5 bg-amber-50 border border-amber-100 text-amber-800 text-sm rounded-xl;
+  }
+
+  .label-required::after {
+    content: " *";
+    @apply text-red-500;
+  }
 }
