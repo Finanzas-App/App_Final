@@ -12,6 +12,9 @@ export interface DashboardSummary {
 export interface Application {
   id: number;
   simulation_id: number;
+  simulation_code?: string | null;
+  amount_financed?: number | null;
+  currency?: string | null;
   status: string;
   decision_reason: string | null;
   approved_amount: number | null;

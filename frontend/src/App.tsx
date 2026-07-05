@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "./features/auth/AuthContext";
+import { AuthProvider, useAuth } from "./features/auth/AuthContext";
 import { ToastProvider } from "./components/ui/Toast";
 import { MainLayout } from "./layout/MainLayout";
 import { RoleGuard } from "./components/RoleGuard";
+import { getHomeRoute } from "./lib/permissions";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import CustomersPage from "./pages/CustomersPage";
@@ -16,6 +17,13 @@ import SettingsPage from "./pages/SettingsPage";
 import UsersPage from "./pages/UsersPage";
 
 const queryClient = new QueryClient();
+
+function DefaultRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  return <Navigate to={getHomeRoute(user.role)} replace />;
+}
 
 export default function App() {
   return (
@@ -36,7 +44,7 @@ export default function App() {
               <Route path="/settings" element={<RoleGuard permission="settings:read"><SettingsPage /></RoleGuard>} />
               <Route path="/users" element={<RoleGuard permission="users:manage"><UsersPage /></RoleGuard>} />
             </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<DefaultRedirect />} />
           </Routes>
           </BrowserRouter>
         </AuthProvider>

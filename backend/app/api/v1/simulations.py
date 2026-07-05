@@ -10,6 +10,7 @@ from app.api.deps import require_permission
 from app.db.session import get_db
 from app.models import Customer, FinancialSettings, Financiera, PaymentSchedule, Simulation, User, Vehicle
 from app.schemas import ScheduleRowResponse, SimulationCreate, SimulationListItem, SimulationResponse
+from app.services.applications import create_application_for_simulation
 from app.services.audit import log_audit
 from app.services.financial_engine import run_simulation
 
@@ -172,6 +173,7 @@ def create_simulation(
     current_user: User = Depends(require_permission("simulations:write")),
 ):
     sim = _build_simulation(db, data, current_user)
+    create_application_for_simulation(db, sim.id, current_user.id, request)
     db.commit()
     log_audit(db, current_user.id, "CREATE", "simulation", sim.id, None, {"code": sim.code}, request)
     sim = _load_simulation(db, sim.id)
@@ -218,6 +220,7 @@ def clone_simulation(
         disbursement_date=original.disbursement_date,
     )
     sim = _build_simulation(db, data, current_user)
+    create_application_for_simulation(db, sim.id, current_user.id, request)
     db.commit()
     log_audit(db, current_user.id, "CLONE", "simulation", sim.id, {"from": simulation_id}, {"code": sim.code}, request)
     sim = _load_simulation(db, sim.id)

@@ -275,6 +275,9 @@ class ApplicationStatusUpdate(BaseModel):
 class ApplicationResponse(BaseModel):
     id: int
     simulation_id: int
+    simulation_code: str | None = None
+    amount_financed: float | None = None
+    currency: str | None = None
     status: str
     decision_reason: str | None
     analyst_id: int | None

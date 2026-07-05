@@ -28,6 +28,19 @@ const LOG_TYPE_STYLE: Record<ApplicationActivity["activity_type"], string> = {
   error: "border-l-red-500 bg-red-50/80 text-red-800",
 };
 
+function resolveApprovedAmount(app: Application): number {
+  if (app.approved_amount != null && app.approved_amount > 0) return app.approved_amount;
+  if (app.status === "Pending" && app.amount_financed != null && app.amount_financed > 0) {
+    return app.amount_financed;
+  }
+  return app.approved_amount ?? 0;
+}
+
+function formatAppCurrency(amount: number | null | undefined, currency?: string | null): string {
+  if (amount == null || amount <= 0) return "-";
+  return formatCurrency(amount, currency ?? "PEN");
+}
+
 export default function ApplicationsPage() {
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
@@ -118,7 +131,7 @@ export default function ApplicationsPage() {
     const initial: ApplicationStatusForm = {
       status: app.status,
       decision_reason: app.decision_reason ?? "",
-      approved_amount: app.approved_amount ?? 0,
+      approved_amount: resolveApprovedAmount(app),
     };
     setSelected(id);
     setStatusForm(initial);
@@ -169,6 +182,7 @@ export default function ApplicationsPage() {
     t("applications.cols.id"),
     t("applications.cols.simulation"),
     t("applications.cols.status"),
+    t("applications.cols.simulatedAmount"),
     t("applications.cols.amount"),
     t("applications.cols.date"),
     "",
@@ -179,10 +193,12 @@ export default function ApplicationsPage() {
       title={t("applications.title")}
       subtitle={canEvaluate ? t("applications.subtitleEvaluate") : t("applications.subtitleRead")}
       actions={
-        <button type="button" onClick={() => { setActivityModalOpen(true); refetchActivity(); }} className="btn-secondary">
-          <History className="w-4 h-4" />
-          {t("applications.activityLog")}
-        </button>
+        canEvaluate ? (
+          <button type="button" onClick={() => { setActivityModalOpen(true); refetchActivity(); }} className="btn-secondary">
+            <History className="w-4 h-4" />
+            {t("applications.activityLog")}
+          </button>
+        ) : undefined
       }
     >
       <div className="table-wrap">
@@ -193,18 +209,19 @@ export default function ApplicationsPage() {
             </thead>
             <tbody>
               {applications.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-slate-500">{t("applications.noApplications")}</td></tr>
+                <tr><td colSpan={7} className="px-6 py-8 text-center text-slate-500">{t("applications.noApplications")}</td></tr>
               ) : applications.map((a: Application) => (
                 <tr
                   key={a.id}
                   className={`transition-colors ${selected === a.id && modalOpen ? "bg-brand-50/60 ring-1 ring-inset ring-brand-200" : "hover:bg-slate-50"}`}
                 >
                   <td className="px-6 py-4 font-medium">#{a.id}</td>
-                  <td className="px-6 py-4">SIM-{a.simulation_id}</td>
+                  <td className="px-6 py-4">{a.simulation_code ?? `SIM-${a.simulation_id}`}</td>
                   <td className="px-6 py-4">
                     <span className={STATUS_COLORS[a.status] || "badge-gray"}>{statusLabel(a.status)}</span>
                   </td>
-                  <td className="px-6 py-4">{a.approved_amount ? formatCurrency(a.approved_amount) : "-"}</td>
+                  <td className="px-6 py-4">{formatAppCurrency(a.amount_financed, a.currency)}</td>
+                  <td className="px-6 py-4">{formatAppCurrency(a.approved_amount, a.currency)}</td>
                   <td className="px-6 py-4">{new Date(a.created_at).toLocaleDateString(i18n.language === "en" ? "en-US" : "es-PE")}</td>
                   <td className="px-6 py-4">
                     {canEvaluate ? (
@@ -274,7 +291,7 @@ export default function ApplicationsPage() {
                 </div>
                 <div>
                   <h3 id="eval-title" className="font-bold text-slate-900">{t("applications.evaluateTitle", { id: selectedApp.id })}</h3>
-                  <p className="text-xs text-slate-500">SIM-{selectedApp.simulation_id}</p>
+                  <p className="text-xs text-slate-500">{selectedApp.simulation_code ?? `SIM-${selectedApp.simulation_id}`}</p>
                 </div>
               </div>
               <button type="button" onClick={closeModal} className="p-2 rounded-xl hover:bg-slate-100 text-slate-500" aria-label={t("common.close")}>
@@ -289,8 +306,12 @@ export default function ApplicationsPage() {
                   <span className={STATUS_COLORS[baseline?.status ?? ""] || "badge-gray"}>{statusLabel(baseline?.status ?? "")}</span>
                 </div>
                 <div className="flex justify-between">
+                  <span className="text-slate-600">{t("applications.simulatedAmountLabel")}</span>
+                  <span className="font-semibold">{formatAppCurrency(selectedApp.amount_financed, selectedApp.currency)}</span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-slate-600">{t("applications.amount")}</span>
-                  <span className="font-semibold">{(baseline?.approved_amount ?? 0) > 0 ? formatCurrency(baseline!.approved_amount) : "-"}</span>
+                  <span className="font-semibold">{formatAppCurrency(baseline?.approved_amount, selectedApp.currency)}</span>
                 </div>
               </div>
               {pendingChanges.length > 0 && !updateMutation.isPending && (
@@ -336,6 +357,7 @@ export default function ApplicationsPage() {
                 <div>
                   <label className="label-field">{t("applications.approvedAmount")}</label>
                   <input type="number" min={0} value={statusForm.approved_amount} onChange={(e: ChangeEvent<HTMLInputElement>) => updateField({ approved_amount: +e.target.value })} className={inputClass(!!fieldErrors.approved_amount)} />
+                  <p className="text-xs text-slate-500 mt-1">{t("applications.approvedAmountHint")}</p>
                   <FieldError message={fieldErrors.approved_amount} />
                 </div>
               </div>

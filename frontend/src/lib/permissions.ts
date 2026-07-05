@@ -19,9 +19,39 @@ const PERMISSIONS: Record<string, Role[]> = {
   "users:manage": ["Admin"],
 };
 
+/** Rutas en orden de prioridad para redirección cuando no hay permiso */
+export const ROUTE_PERMISSIONS: { path: string; permission: string }[] = [
+  { path: "/", permission: "dashboard:read" },
+  { path: "/applications", permission: "applications:read" },
+  { path: "/simulations", permission: "simulations:read" },
+  { path: "/customers", permission: "customers:read" },
+  { path: "/vehicles", permission: "vehicles:read" },
+  { path: "/analytics", permission: "analytics:read" },
+  { path: "/settings", permission: "settings:read" },
+  { path: "/users", permission: "users:manage" },
+];
+
 export function hasPermission(role: string | undefined, permission: string): boolean {
   if (!role) return false;
   return PERMISSIONS[permission]?.includes(role as Role) ?? false;
+}
+
+export function getHomeRoute(role: string | undefined): string {
+  switch (role) {
+    case "Analyst":
+      return "/applications";
+    case "Executive":
+      return "/simulations";
+    default:
+      return "/";
+  }
+}
+
+export function getFirstAllowedRoute(role: string | undefined): string {
+  for (const { path, permission } of ROUTE_PERMISSIONS) {
+    if (hasPermission(role, permission)) return path;
+  }
+  return "/login";
 }
 
 export const ROLE_LABELS: Record<Role, string> = {
