@@ -77,7 +77,20 @@
     "statMonths": "Meses de plazo",
     "statRates": "Tasas flexibles",
     "statPdf": "Cronograma PDF",
-    "completeFields": "Complete los campos requeridos antes de continuar."
+    "completeFields": "Complete los campos requeridos antes de continuar.",
+    "twoFactorTitle": "Verificación en dos pasos",
+    "twoFactorSubtitle": "Ingresa el código de 6 caracteres enviado a tu correo",
+    "verificationCode": "Código de verificación",
+    "codePlaceholder": "ABC123",
+    "verify": "Verificar",
+    "verifying": "Verificando...",
+    "resendCode": "Reenviar código",
+    "resending": "Reenviando...",
+    "resendWait": "Reenviar en {{seconds}}s",
+    "expiresIn": "Expira en {{time}}",
+    "codeSentTo": "Código enviado a",
+    "backToLogin": "Volver al inicio de sesión",
+    "invalidCode": "Ingresa un código de 6 caracteres."
   },
   "dashboard": {
     "title": "Panel",

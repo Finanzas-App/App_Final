@@ -1,12 +1,13 @@
 """Seed data for AutoFinance Pro demo - aligned with PDF test cases."""
 
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from app.core.security import get_password_hash
 from app.db.session import SessionLocal
 from app.models import (
     Application,
     Customer,
+    DemoAccessToken,
     FinancialSettings,
     Financiera,
     PaymentSchedule,
@@ -16,6 +17,8 @@ from app.models import (
     Vehicle,
 )
 from app.services.financial_engine import run_simulation
+
+DEMO_TOKEN_DAYS = 365
 
 PAYMENT_STATUS_PENDING = 1
 
@@ -37,10 +40,43 @@ def _add_schedule(db, sim_id: int, result) -> None:
         )
 
 
+DEMO_USER_EMAILS = (
+    "admin@autofinance.pro",
+    "analyst@autofinance.pro",
+    "executive@autofinance.pro",
+)
+
+
+def ensure_demo_access_tokens(db) -> None:
+    """Create long-lived bypass tokens for base demo users (idempotent)."""
+    expires = datetime.now(timezone.utc) + timedelta(days=DEMO_TOKEN_DAYS)
+    created = 0
+    for email in DEMO_USER_EMAILS:
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            continue
+        active = (
+            db.query(DemoAccessToken)
+            .filter(
+                DemoAccessToken.user_id == user.id,
+                DemoAccessToken.is_active == True,  # noqa: E712
+                DemoAccessToken.expires_at > datetime.now(timezone.utc),
+            )
+            .first()
+        )
+        if not active:
+            db.add(DemoAccessToken(user_id=user.id, expires_at=expires, is_active=True))
+            created += 1
+    if created:
+        db.commit()
+        print(f"Demo access tokens ensured ({created} created).")
+
+
 def seed():
     db = SessionLocal()
     try:
         if db.query(User).first():
+            ensure_demo_access_tokens(db)
             print("Seed already applied, skipping.")
             return
 
@@ -49,6 +85,10 @@ def seed():
         executive = User(name="Carlos Executive", email="executive@autofinance.pro", password_hash=get_password_hash("exec123"), role="Executive")
         db.add_all([admin, analyst, executive])
         db.flush()
+
+        demo_expires = datetime.now(timezone.utc) + timedelta(days=DEMO_TOKEN_DAYS)
+        for demo_user in (admin, analyst, executive):
+            db.add(DemoAccessToken(user_id=demo_user.id, expires_at=demo_expires, is_active=True))
 
         settings = FinancialSettings(
             dealership_name="AutoFinance Pro Concesionaria",

@@ -1,6 +1,7 @@
+import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -16,6 +17,38 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(50), default="Executive")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    login_challenges = relationship("LoginChallenge", back_populates="user")
+    demo_access_tokens = relationship("DemoAccessToken", back_populates="user")
+
+
+class DemoAccessToken(Base):
+    """Bypass 2FA for seeded demo users with fake emails."""
+
+    __tablename__ = "demo_access_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="demo_access_tokens")
+
+
+class LoginChallenge(Base):
+    __tablename__ = "login_challenges"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    code_hash: Mapped[str] = mapped_column(String(128), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    used: Mapped[bool] = mapped_column(Boolean, default=False)
+    last_sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="login_challenges")
 
 
 class CurrencyType(Base):

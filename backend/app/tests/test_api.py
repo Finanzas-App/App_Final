@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -60,10 +61,24 @@ def client():
     Base.metadata.drop_all(bind=engine)
 
 
+_sent_codes: list[str] = []
+
+
+def _capture_otp(_to: str, _name: str, code: str) -> None:
+    _sent_codes.append(code)
+
+
 def _token(client, email="admin@test.com"):
-    r = client.post("/api/v1/auth/login", json={"email": email, "password": "test123"})
+    _sent_codes.clear()
+    with patch("app.services.otp.send_otp_email", side_effect=_capture_otp):
+        r = client.post("/api/v1/auth/login", json={"email": email, "password": "test123"})
     assert r.status_code == 200
-    return r.json()["access_token"]
+    data = r.json()
+    assert data.get("requires_2fa") is True
+    code = _sent_codes[-1]
+    r2 = client.post("/api/v1/auth/verify-2fa", json={"challenge_id": data["challenge_id"], "code": code})
+    assert r2.status_code == 200
+    return r2.json()["access_token"]
 
 
 def _auth(token):

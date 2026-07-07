@@ -23,6 +23,12 @@ services:
       DATABASE_URL: postgresql+psycopg2://autofinance:autofinance123@postgres:5432/autofinance_db
       SECRET_KEY: autofinance-pro-secret-key-change-in-production
       CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USER: sistemaavisosoli@gmail.com
+      SMTP_PASSWORD: vbqm zcas tlph vkea
+      SMTP_FROM: noreply@autofinance.pro
+      SMTP_USE_TLS: true
     depends_on:
       postgres:
         condition: service_healthy
