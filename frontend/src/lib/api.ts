@@ -44,6 +44,7 @@ export const authApi = {
   register: (data: object) => api.post("/auth/register", data),
   me: () => api.get("/auth/me"),
   listUsers: () => api.get("/auth/users"),
+  deactivateUser: (id: number) => api.patch(`/auth/users/${id}/deactivate`),
 };
 
 export const customersApi = {

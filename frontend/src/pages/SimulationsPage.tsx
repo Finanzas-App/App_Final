@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Plus, Eye, Copy } from "lucide-react";
@@ -25,6 +25,7 @@ const defaultForm = {
 
 export default function SimulationsPage() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const toast = useToast();
   const { user } = useAuth();
@@ -52,7 +53,7 @@ export default function SimulationsPage() {
       qc.invalidateQueries({ queryKey: ["applications"] });
       setShowWizard(false);
       toast.success(t("simulations.generated"));
-      window.location.href = `/simulations/${r.data.id}`;
+      navigate(`/simulations/${r.data.id}`);
     },
     onError: (err) => {
       const { message, fieldErrors: apiFields } = parseApiError(err);
@@ -246,11 +247,11 @@ export default function SimulationsPage() {
                 </div>
                 <div className="flex items-center gap-2 mt-2">
                   <input type="checkbox" checked={form.include_insurance_vehicle} onChange={(e) => setForm({ ...form, include_insurance_vehicle: e.target.checked })} id="ins_v" />
-                  <label htmlFor="ins_v" className="text-sm text-gray-600">{t("simulations.includeVehicleInsurance")}</label>
+                  <label htmlFor="ins_v" className="text-sm text-gray-600">{t("simulations.includeVehicleInsurance")} <HelpTooltip field="include_insurance_vehicle" /></label>
                 </div>
                 <div className="flex items-center gap-2 mt-2">
                   <input type="checkbox" checked={form.include_insurance_life} onChange={(e) => setForm({ ...form, include_insurance_life: e.target.checked })} id="ins_l" />
-                  <label htmlFor="ins_l" className="text-sm text-gray-600">{t("simulations.includeLifeInsurance")}</label>
+                  <label htmlFor="ins_l" className="text-sm text-gray-600">{t("simulations.includeLifeInsurance")} <HelpTooltip field="include_insurance_life" /></label>
                 </div>
               </div>
               {selectedVehicle && (

@@ -46,7 +46,7 @@ export default function SettingsPage() {
       qc.invalidateQueries({ queryKey: ["settings"] });
       setFieldErrors({});
       setFormError("");
-      toast.success("Configuración guardada correctamente");
+      toast.success(t("settings.saved"));
     },
     onError: (err) => {
       const { message, fieldErrors: apiFields } = parseApiError(err);
@@ -60,8 +60,8 @@ export default function SettingsPage() {
     const errors = validateSettings(form);
     setFieldErrors(errors);
     if (hasErrors(errors)) {
-      setFormError("Complete correctamente los datos de la concesionaria");
-      toast.warning("Revise los campos marcados");
+      setFormError(t("settings.formError"));
+      toast.warning(t("settings.reviewFields"));
       return;
     }
     setFormError("");
@@ -73,70 +73,71 @@ export default function SettingsPage() {
       <div className="card p-4 sm:p-6 lg:p-8 max-w-3xl space-y-6 sm:space-y-8">
         <FormAlert message={formError} type="error" />
         <section>
-          <h3 className="font-semibold mb-4 text-slate-800">Datos de la Concesionaria</h3>
+          <h3 className="font-semibold mb-4 text-slate-800">{t("settings.dealershipSection")}</h3>
           <div className="form-grid">
             <div className="sm:col-span-2">
-              <label className="label-field label-required">Nombre</label>
+              <label className="label-field label-required">{t("settings.dealershipName")}</label>
               <input value={form.dealership_name} onChange={(e) => { setForm({ ...form, dealership_name: e.target.value }); setFieldErrors((p) => ({ ...p, dealership_name: "" })); }} className={inputClass(!!fieldErrors.dealership_name)} />
               <FieldError message={fieldErrors.dealership_name} />
             </div>
             <div>
-              <label className="label-field label-required">RUC (11 dígitos)</label>
+              <label className="label-field label-required">{t("settings.ruc")}</label>
               <input value={form.dealership_ruc} maxLength={11} onChange={(e) => { setForm({ ...form, dealership_ruc: e.target.value }); setFieldErrors((p) => ({ ...p, dealership_ruc: "" })); }} className={inputClass(!!fieldErrors.dealership_ruc)} />
               <FieldError message={fieldErrors.dealership_ruc} />
             </div>
             <div>
-              <label className="label-field label-required">Correo empresarial</label>
+              <label className="label-field label-required">{t("settings.businessEmail")}</label>
               <input type="email" value={form.dealership_email} onChange={(e) => { setForm({ ...form, dealership_email: e.target.value }); setFieldErrors((p) => ({ ...p, dealership_email: "" })); }} className={inputClass(!!fieldErrors.dealership_email)} />
               <FieldError message={fieldErrors.dealership_email} />
             </div>
           </div>
         </section>
         <section>
-          <h3 className="font-semibold mb-4 text-slate-800">Parámetros Financieros</h3>
+          <h3 className="font-semibold mb-4 text-slate-800">{t("settings.financialSection")}</h3>
           <div className="form-grid">
             <div>
-              <label className="label-field">Moneda por Defecto <HelpTooltip field="default_currency" /></label>
+              <label className="label-field">{t("settings.defaultCurrency")} <HelpTooltip field="default_currency" /></label>
               <select value={form.default_currency} onChange={(e) => setForm({ ...form, default_currency: e.target.value })} className="input-field">
-                <option value="PEN">Soles (PEN)</option><option value="USD">Dólares (USD)</option>
+                <option value="PEN">{t("settings.currencyPen")}</option>
+                <option value="USD">{t("settings.currencyUsd")}</option>
               </select>
             </div>
             <div>
-              <label className="label-field">Tipo de Cambio <HelpTooltip field="exchange_rate" /></label>
+              <label className="label-field">{t("settings.exchangeRate")} <HelpTooltip field="exchange_rate" /></label>
               <input type="number" step="0.01" value={form.exchange_rate} onChange={(e) => setForm({ ...form, exchange_rate: +e.target.value })} className="input-field" />
             </div>
             <div>
-              <label className="label-field">COK Anual <HelpTooltip field="cok" /></label>
+              <label className="label-field">{t("settings.cokAnnual")} <HelpTooltip field="cok" /></label>
               <input type="number" step="0.01" value={form.cok_annual} onChange={(e) => setForm({ ...form, cok_annual: +e.target.value })} className="input-field" />
             </div>
             <div>
-              <label className="label-field">Cuota Balón % <HelpTooltip field="balloon_percent" /></label>
+              <label className="label-field">{t("settings.balloonPercent")} <HelpTooltip field="balloon_percent" /></label>
               <input type="number" step="0.01" value={form.default_balloon_percent} onChange={(e) => setForm({ ...form, default_balloon_percent: +e.target.value })} className="input-field" />
             </div>
             <div>
-              <label className="label-field">Capitalización <HelpTooltip field="capitalization" /></label>
+              <label className="label-field">{t("settings.capitalization")} <HelpTooltip field="capitalization" /></label>
               <input type="number" value={form.default_capitalization} onChange={(e) => setForm({ ...form, default_capitalization: +e.target.value })} className="input-field" />
             </div>
             <div>
-              <label className="label-field">Seguro Vehicular Mensual <HelpTooltip field="insurance_vehicle" /></label>
+              <label className="label-field">{t("settings.vehicleInsurance")} <HelpTooltip field="insurance_vehicle" /></label>
               <input type="number" value={form.insurance_vehicle_monthly} onChange={(e) => setForm({ ...form, insurance_vehicle_monthly: +e.target.value })} className="input-field" />
             </div>
             <div>
-              <label className="label-field">Seguro Desgravamen Mensual <HelpTooltip field="insurance_life" /></label>
+              <label className="label-field">{t("settings.lifeInsurance")} <HelpTooltip field="insurance_life" /></label>
               <input type="number" value={form.insurance_life_monthly} onChange={(e) => setForm({ ...form, insurance_life_monthly: +e.target.value })} className="input-field" />
             </div>
             <div>
-              <label className="label-field">Portes Mensuales <HelpTooltip field="portes" /></label>
+              <label className="label-field">{t("settings.monthlyFees")} <HelpTooltip field="portes" /></label>
               <input type="number" value={form.portes_monthly} onChange={(e) => setForm({ ...form, portes_monthly: +e.target.value })} className="input-field" />
             </div>
             <div>
-              <label className="label-field">Comisión (%) <HelpTooltip field="commission" /></label>
+              <label className="label-field">{t("settings.commission")} <HelpTooltip field="commission" /></label>
               <input type="number" step="0.01" value={form.commission_rate} onChange={(e) => setForm({ ...form, commission_rate: +e.target.value })} className="input-field" />
             </div>
           </div>
         </section>
         <button onClick={handleSave} disabled={saveMutation.isPending} className="btn-primary">
-          {saveMutation.isPending ? "Guardando..." : "Guardar Configuración"}
+          {saveMutation.isPending ? t("settings.saving") : t("settings.saveButton")}
         </button>
       </div>
     </AppLayout>

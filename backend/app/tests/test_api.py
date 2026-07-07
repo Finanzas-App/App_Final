@@ -10,7 +10,7 @@ from sqlalchemy.pool import StaticPool
 from app.core.security import get_password_hash
 from app.db.session import Base, get_db
 from app.main import app
-from app.models import AuditLog, User
+from app.models import AuditLog, Customer, FinancialSettings, Financiera, User, Vehicle
 
 SQLALCHEMY_DATABASE_URL = "sqlite://"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool)
@@ -26,6 +26,53 @@ def _make_users(db):
     db.add_all(users)
     db.commit()
     return users
+
+
+def _seed_simulation_prereqs(db):
+    fin = Financiera(name="Banco Test", is_active=True)
+    customer = Customer(
+        nombres="Ana",
+        apellidos="López",
+        dni="87654321",
+        edad=28,
+        ingreso_mensual=6000,
+        email="ana@test.com",
+        telefono="912345678",
+        direccion="Lima",
+        esta_trabajando=True,
+        es_dependiente=False,
+        created_by=3,
+    )
+    vehicle = Vehicle(
+        brand="Toyota",
+        model="Corolla",
+        year=2026,
+        category="Sedán",
+        color="Blanco",
+        price=85000,
+        currency="PEN",
+        status="nuevo",
+    )
+    settings = FinancialSettings(
+        dealership_name="Test Motors",
+        dealership_ruc="20123456789",
+        dealership_email="info@test.com",
+        default_currency="PEN",
+        exchange_rate=3.75,
+        cok_annual=0.10,
+        default_balloon_percent=0.25,
+        default_capitalization=12,
+        insurance_vehicle_monthly=180,
+        insurance_life_monthly=45,
+        portes_monthly=10,
+        commission_rate=0,
+    )
+    db.add_all([fin, customer, vehicle, settings])
+    db.commit()
+    db.refresh(fin)
+    db.refresh(customer)
+    db.refresh(vehicle)
+    return fin, customer, vehicle
 
 
 def _add_audit_log(db, **kwargs):
@@ -219,3 +266,55 @@ def test_log_application_view_not_found(client):
     token = _token(client, "soporte@test.com")
     r = client.post("/api/v1/applications/999/view", headers=_auth(token))
     assert r.status_code == 404
+
+
+def test_vendedor_can_create_simulation(client):
+    db = TestingSessionLocal()
+    fin, customer, vehicle = _seed_simulation_prereqs(db)
+    token = _token(client, "vendedor@test.com")
+    r = client.post(
+        "/api/v1/simulations",
+        headers=_auth(token),
+        json={
+            "customer_id": customer.id,
+            "vehicle_id": vehicle.id,
+            "financiera_id": fin.id,
+            "down_payment": 15000,
+            "rate_type": "TEA",
+            "rate_value": 0.12,
+            "capitalization": 12,
+            "grace_type": "none",
+            "grace_months": 0,
+            "term_months": 48,
+            "balloon_percent": 0.25,
+            "balloon_base": "vehicle",
+            "include_insurance_vehicle": True,
+            "include_insurance_life": True,
+            "portes": 10,
+        },
+    )
+    assert r.status_code == 201
+    data = r.json()
+    assert data["amount_financed"] > 0
+    assert data["monthly_payment"] > 0
+    assert len(data["schedule"]) == 48
+
+
+def test_admin_can_deactivate_user(client):
+    db = TestingSessionLocal()
+    extra = User(name="Extra", email="extra@test.com", password_hash=get_password_hash("test123"), role="Vendedor")
+    db.add(extra)
+    db.commit()
+    db.refresh(extra)
+    token = _token(client, "admin@test.com")
+    r = client.patch(f"/api/v1/auth/users/{extra.id}/deactivate", headers=_auth(token))
+    assert r.status_code == 200
+    assert r.json()["is_active"] is False
+
+
+def test_admin_cannot_deactivate_self(client):
+    db = TestingSessionLocal()
+    admin = db.query(User).filter(User.email == "admin@test.com").first()
+    token = _token(client, "admin@test.com")
+    r = client.patch(f"/api/v1/auth/users/{admin.id}/deactivate", headers=_auth(token))
+    assert r.status_code == 400

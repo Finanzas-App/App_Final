@@ -151,4 +151,26 @@ def list_users(
     db: Session = Depends(get_db),
     _: User = Depends(require_permission("users:manage")),
 ):
-    return db.query(User).filter(User.is_active == True).order_by(User.id).all()  # noqa: E712
+    return db.query(User).order_by(User.is_active.desc(), User.id).all()
+
+
+@router.patch("/users/{user_id}/deactivate", response_model=UserResponse)
+def deactivate_user(
+    user_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("users:manage")),
+):
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="No puede desactivarse a sí mismo")
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    if not user.is_active:
+        raise HTTPException(status_code=400, detail="El usuario ya está inactivo")
+    previous = {"is_active": user.is_active}
+    user.is_active = False
+    db.commit()
+    db.refresh(user)
+    log_audit(db, current_user.id, "DEACTIVATE", "user", user.id, previous, {"is_active": False}, request)
+    return user
