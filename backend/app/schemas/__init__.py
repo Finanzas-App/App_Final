@@ -9,6 +9,28 @@ class Token(BaseModel):
     token_type: str = "bearer"
 
 
+class LoginResponse(BaseModel):
+    requires_2fa: bool = True
+    challenge_id: str | None = None
+    expires_in: int | None = None
+    access_token: str | None = None
+    token_type: str = "bearer"
+
+
+class Verify2FARequest(BaseModel):
+    challenge_id: str
+    code: str = Field(min_length=6, max_length=6)
+
+    @field_validator("code")
+    @classmethod
+    def normalize_code(cls, v: str) -> str:
+        return v.strip().upper()
+
+
+class Resend2FARequest(BaseModel):
+    challenge_id: str
+
+
 class UserCreate(BaseModel):
     name: str
     email: EmailStr

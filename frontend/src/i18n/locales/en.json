@@ -78,7 +78,20 @@
     "statMonths": "Month terms",
     "statRates": "Flexible rates",
     "statPdf": "PDF schedule",
-    "completeFields": "Complete the required fields before continuing."
+    "completeFields": "Complete the required fields before continuing.",
+    "twoFactorTitle": "Two-step verification",
+    "twoFactorSubtitle": "Enter the 6-character code sent to your email",
+    "verificationCode": "Verification code",
+    "codePlaceholder": "ABC123",
+    "verify": "Verify",
+    "verifying": "Verifying...",
+    "resendCode": "Resend code",
+    "resending": "Resending...",
+    "resendWait": "Resend in {{seconds}}s",
+    "expiresIn": "Expires in {{time}}",
+    "codeSentTo": "Code sent to",
+    "backToLogin": "Back to sign in",
+    "invalidCode": "Enter a 6-character code."
   },
   "dashboard": {
     "title": "Dashboard",

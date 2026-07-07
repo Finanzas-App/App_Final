@@ -13,22 +13,34 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (r) => r,
   (error) => {
-    const isLoginRequest = error.config?.url?.includes("/auth/login");
-    if (error.response?.status === 401 && !isLoginRequest) {
+    const isAuthRequest = error.config?.url?.includes("/auth/login")
+      || error.config?.url?.includes("/auth/verify-2fa")
+      || error.config?.url?.includes("/auth/resend-2fa");
+    if (error.response?.status === 401 && !isAuthRequest) {
       localStorage.removeItem("token");
       if (!window.location.pathname.includes("/login")) {
         window.location.href = "/login";
       }
     }
-    if (error.response?.status === 403 && !isLoginRequest) {
+    if (error.response?.status === 403 && !isAuthRequest) {
       console.warn("Acceso denegado:", error.response?.data?.detail);
     }
     return Promise.reject(error);
   }
 );
 
+export interface LoginResponse {
+  requires_2fa: boolean;
+  challenge_id?: string;
+  expires_in?: number;
+  access_token?: string;
+  token_type?: string;
+}
+
 export const authApi = {
-  login: (email: string, password: string) => api.post("/auth/login", { email, password }),
+  login: (email: string, password: string) => api.post<LoginResponse>("/auth/login", { email, password }),
+  verify2FA: (challengeId: string, code: string) => api.post<{ access_token: string; token_type: string }>("/auth/verify-2fa", { challenge_id: challengeId, code }),
+  resend2FA: (challengeId: string) => api.post<{ requires_2fa: boolean; challenge_id: string; expires_in: number }>("/auth/resend-2fa", { challenge_id: challengeId }),
   register: (data: object) => api.post("/auth/register", data),
   me: () => api.get("/auth/me"),
   listUsers: () => api.get("/auth/users"),
