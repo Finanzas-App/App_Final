@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: autofinance
-      POSTGRES_PASSWORD: autofinance123
-      POSTGRES_DB: autofinance_db
+      POSTGRES_USER: ${POSTGRES_USER:-autofinance}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-autofinance123}
+      POSTGRES_DB: ${POSTGRES_DB:-autofinance_db}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U autofinance -d autofinance_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-autofinance} -d ${POSTGRES_DB:-autofinance_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -19,30 +19,30 @@ services:
     build: ./backend
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql+psycopg2://autofinance:autofinance123@postgres:5432/autofinance_db
-      SECRET_KEY: autofinance-pro-secret-key-change-in-production
-      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
-      SMTP_HOST: smtp.gmail.com
-      SMTP_PORT: 587
-      SMTP_USER: sistemaavisosoli@gmail.com
-      SMTP_PASSWORD: vbqm zcas tlph vkea
-      SMTP_FROM: noreply@autofinance.pro
-      SMTP_USE_TLS: true
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://autofinance:autofinance123@postgres:5432/autofinance_db}
+      PORT: 8000
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - ./backend:/app
+    entrypoint: []
     command: >
       sh -c "alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
     ports:
       - "5173:5173"
+    env_file:
+      - .env
     environment:
-      VITE_API_URL: http://localhost:8000
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
     depends_on:
       - backend
     volumes:

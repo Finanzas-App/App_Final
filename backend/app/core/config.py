@@ -1,4 +1,13 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
+
+
+def _normalize_database_url(url: str) -> str:
+    if url.startswith("postgresql://") and "+psycopg2" not in url:
+        return url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql+psycopg2://", 1)
+    return url
 
 
 class Settings(BaseSettings):
@@ -17,6 +26,11 @@ class Settings(BaseSettings):
     OTP_LENGTH: int = 6
     OTP_MAX_ATTEMPTS: int = 5
     DEMO_ACCESS_TOKEN_DAYS: int = 365
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def normalize_database_url(cls, v: str) -> str:
+        return _normalize_database_url(v)
 
     @property
     def cors_origins_list(self) -> list[str]:

@@ -2,15 +2,24 @@
 
 Plataforma fintech B2B para concesionarias vehiculares — **Vehicle Financing**.
 
-## Inicio rápido
+## Desarrollo local
 
 ```bash
+cp .env.example .env
 docker compose up --build
 ```
 
 - **Frontend:** http://localhost:5173
 - **Backend API:** http://localhost:8000
 - **Swagger:** http://localhost:8000/docs
+
+El desarrollo local usa `Dockerfile.dev` (hot reload). La producción usa los Dockerfiles estándar en `backend/` y `frontend/`.
+
+## Deploy en Railway
+
+Guía completa paso a paso: **[DEPLOY-RAILWAY.md](DEPLOY-RAILWAY.md)**
+
+Resumen: 3 servicios (PostgreSQL + backend + frontend) en un proyecto Railway, variables de entorno en el dashboard, dominios generados automáticamente.
 
 ## Autenticación 2FA por email
 
@@ -22,22 +31,20 @@ Usuarios creados manualmente sí requieren 2FA.
 
 ### Configuración SMTP
 
-Variables de entorno (backend):
+Variables en `.env` (local) o en Railway (producción):
 
 ```env
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=tu-correo@gmail.com
 SMTP_PASSWORD=contraseña-de-aplicacion
-SMTP_FROM=noreply@autofinance.pro
+SMTP_FROM=tu-correo@gmail.com
 SMTP_USE_TLS=true
 ```
 
-**Desarrollo sin SMTP:** si `SMTP_HOST` está vacío, el código OTP se imprime en los logs del contenedor backend:
+**Desarrollo sin SMTP:** si `SMTP_HOST` está vacío, el código OTP se imprime en los logs del backend.
 
-```bash
-docker compose logs backend
-```
+Probar envío: `cd backend && python scripts/test_smtp_send.py`
 
 ### Credenciales demo
 

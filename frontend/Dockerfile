@@ -1,12 +1,25 @@
-FROM node:20-alpine
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm install
+RUN npm ci
 
 COPY . .
 
-EXPOSE 5173
+ARG VITE_API_URL=http://localhost:8000
+ENV VITE_API_URL=$VITE_API_URL
 
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+RUN npm run build
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+RUN npm install -g serve@14
+
+COPY --from=build /app/dist ./dist
+
+EXPOSE 3000
+
+CMD ["sh", "-c", "serve -s dist -l ${PORT:-3000}"]
