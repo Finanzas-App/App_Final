@@ -162,13 +162,13 @@ export default function SimulationsPage() {
                 <FieldError message={fieldErrors.vehicle_id} />
               </div>
               <div>
-                <label className="label-field">{t("simulations.financiera")}</label>
+                <label className="label-field">{t("simulations.financiera")} <HelpTooltip field="financiera" /></label>
                 <select value={form.financiera_id} onChange={(e) => setForm({ ...form, financiera_id: +e.target.value })} className="input-field">
                   {financieras.map((f: { id: number; name: string }) => <option key={f.id} value={f.id}>{f.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="label-field">{t("simulations.disbursementDate")}</label>
+                <label className="label-field">{t("simulations.disbursementDate")} <HelpTooltip field="disbursement_date" /></label>
                 <input type="date" value={form.disbursement_date} onChange={(e) => setForm({ ...form, disbursement_date: e.target.value })} className="input-field" />
               </div>
               <button type="button" onClick={goStep2} className="btn-primary">{t("common.next")}</button>
@@ -184,12 +184,12 @@ export default function SimulationsPage() {
                   <FieldError message={fieldErrors.down_payment} />
                 </div>
                 <div>
-                  <label className="label-field label-required">{t("simulations.termMonths")}</label>
+                  <label className="label-field label-required">{t("simulations.termMonths")} <HelpTooltip field="term_months" /></label>
                   <input type="number" value={form.term_months} onChange={(e) => { setForm({ ...form, term_months: +e.target.value }); setFieldErrors((p) => ({ ...p, term_months: "" })); }} className={inputClass(!!fieldErrors.term_months)} />
                   <FieldError message={fieldErrors.term_months} />
                 </div>
                 <div>
-                  <label className="label-field">{t("simulations.rateType")}</label>
+                  <label className="label-field">{t("simulations.rateType")} <HelpTooltip field="rate_type" /></label>
                   <select value={form.rate_type} onChange={(e) => setForm({ ...form, rate_type: e.target.value as "TEA" | "TNA" })} className="input-field">
                     <option value="TEA">TEA</option><option value="TNA">TNA</option>
                   </select>
@@ -201,24 +201,24 @@ export default function SimulationsPage() {
                 </div>
                 {form.rate_type === "TNA" && (
                   <div>
-                    <label className="text-sm text-gray-600">{t("simulations.capitalization")}</label>
-                    <input type="number" value={form.capitalization} onChange={(e) => setForm({ ...form, capitalization: +e.target.value })} className="w-full mt-1 px-3 py-2 border rounded-xl" />
+                    <label className="label-field">{t("simulations.capitalization")} <HelpTooltip field="capitalization" /></label>
+                    <input type="number" value={form.capitalization} onChange={(e) => setForm({ ...form, capitalization: +e.target.value })} className="input-field" />
                   </div>
                 )}
                 <div>
-                  <label className="label-field">{t("simulations.balloonPercent")}</label>
+                  <label className="label-field">{t("simulations.balloonPercent")} <HelpTooltip field="balloon_percent" /></label>
                   <input type="number" step="0.01" value={form.balloon_percent} onChange={(e) => { setForm({ ...form, balloon_percent: +e.target.value }); setFieldErrors((p) => ({ ...p, balloon_percent: "" })); }} className={inputClass(!!fieldErrors.balloon_percent)} />
                   <FieldError message={fieldErrors.balloon_percent} />
                 </div>
                 <div>
-                  <label className="label-field">{t("simulations.balloonBase")}</label>
+                  <label className="label-field">{t("simulations.balloonBase")} <HelpTooltip field="balloon_base" /></label>
                   <select value={form.balloon_base} onChange={(e) => setForm({ ...form, balloon_base: e.target.value as "vehicle" | "financed" })} className="input-field">
                     <option value="vehicle">{t("simulations.balloonBaseVehicle")}</option>
                     <option value="financed">{t("simulations.balloonBaseFinanced")}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="label-field">{t("simulations.monthlyFees")}</label>
+                  <label className="label-field">{t("simulations.monthlyFees")} <HelpTooltip field="portes" /></label>
                   <input type="number" value={form.portes} onChange={(e) => setForm({ ...form, portes: +e.target.value })} className="input-field" />
                 </div>
               </div>
@@ -233,16 +233,16 @@ export default function SimulationsPage() {
               <h3 className="text-lg font-semibold">{t("simulations.step3Title")}</h3>
               <div className="form-grid">
                 <div>
-                  <label className="text-sm text-gray-600">{t("simulations.graceType")}</label>
-                  <select value={form.grace_type} onChange={(e) => setForm({ ...form, grace_type: e.target.value as typeof form.grace_type })} className="w-full mt-1 px-3 py-2 border rounded-xl">
+                  <label className="label-field">{t("simulations.graceType")} <HelpTooltip field="grace_type" /></label>
+                  <select value={form.grace_type} onChange={(e) => setForm({ ...form, grace_type: e.target.value as typeof form.grace_type })} className="input-field">
                     <option value="none">{t("simulations.noGrace")}</option>
                     <option value="total">{t("simulations.totalGrace")}</option>
                     <option value="partial">{t("simulations.partialGrace")}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm text-gray-600">{t("simulations.graceMonths")}</label>
-                  <input type="number" value={form.grace_months} onChange={(e) => setForm({ ...form, grace_months: +e.target.value })} className="w-full mt-1 px-3 py-2 border rounded-xl" />
+                  <label className="label-field">{t("simulations.graceMonths")} <HelpTooltip field="grace_months" /></label>
+                  <input type="number" value={form.grace_months} onChange={(e) => setForm({ ...form, grace_months: +e.target.value })} className="input-field" />
                 </div>
                 <div className="flex items-center gap-2 mt-2">
                   <input type="checkbox" checked={form.include_insurance_vehicle} onChange={(e) => setForm({ ...form, include_insurance_vehicle: e.target.checked })} id="ins_v" />
@@ -299,4 +299,4 @@ export default function SimulationsPage() {
     </AppLayout>
   );
 }
-
+

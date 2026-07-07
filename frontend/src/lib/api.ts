@@ -76,3 +76,8 @@ export const settingsApi = {
 export const dashboardApi = {
   summary: () => api.get("/dashboard/summary"),
 };
+
+export const auditApi = {
+  list: (params?: { limit?: number; offset?: number; entity_type?: string; action?: string }) =>
+    api.get("/audit/logs", { params }),
+};

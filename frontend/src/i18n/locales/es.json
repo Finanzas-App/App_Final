@@ -40,20 +40,21 @@
     "customers": "Clientes",
     "analytics": "Analítica",
     "settings": "Configuración",
-    "users": "Usuarios"
+    "users": "Usuarios",
+    "audit": "Auditoría"
   },
   "roles": {
-    "Admin": {
+    "Administrador": {
       "label": "Administrador",
-      "description": "Configura parámetros, vehículos y usuarios. Acceso total."
+      "description": "Configura parámetros, vehículos y usuarios. Acceso total al sistema."
     },
-    "Analyst": {
-      "label": "Analista de crédito",
-      "description": "Evalúa y aprueba/rechaza solicitudes de financiamiento."
+    "Vendedor": {
+      "label": "Vendedor",
+      "description": "Registra clientes, crea simulaciones y solicitudes de financiamiento."
     },
-    "Executive": {
-      "label": "Ejecutivo comercial",
-      "description": "Registra clientes, crea simulaciones y solicitudes."
+    "Soporte": {
+      "label": "Soporte",
+      "description": "Evalúa solicitudes, asiste operaciones y revisa la auditoría del sistema."
     }
   },
   "status": {
@@ -245,6 +246,21 @@
     "subtitle": "Gestión de usuarios internos de la concesionaria",
     "created": "Usuario creado correctamente",
     "reviewForm": "Revise el formulario de usuario"
+  },
+  "audit": {
+    "title": "Auditoría del Sistema",
+    "subtitle": "Registro de operaciones sensibles y trazabilidad",
+    "filterEntity": "Tipo de entidad",
+    "filterAction": "Acción",
+    "allEntities": "Todas las entidades",
+    "allActions": "Todas las acciones",
+    "cols": {
+      "date": "Fecha",
+      "user": "Usuario",
+      "action": "Acción",
+      "entity": "Entidad",
+      "ip": "IP"
+    }
   },
   "validation": {
     "required": "{{field}} es obligatorio",

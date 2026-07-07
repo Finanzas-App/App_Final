@@ -13,7 +13,7 @@ class UserCreate(BaseModel):
     name: str
     email: EmailStr
     password: str = Field(min_length=6)
-    role: Literal["Admin", "Analyst", "Executive"] = "Executive"
+    role: Literal["Administrador", "Vendedor", "Soporte"] = "Vendedor"
 
 
 class UserResponse(BaseModel):
@@ -307,3 +307,17 @@ class DashboardSummary(BaseModel):
     simulations_by_month: list[dict]
     financing_by_category: list[dict]
     currency_distribution: list[dict]
+
+
+class AuditLogResponse(BaseModel):
+    id: int
+    user_id: int | None
+    user_name: str | None = None
+    user_role: str | None = None
+    action: str
+    entity_type: str
+    entity_id: int | None
+    previous_value: str | None
+    new_value: str | None
+    ip_address: str | None
+    created_at: datetime

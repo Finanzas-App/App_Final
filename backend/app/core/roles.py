@@ -2,25 +2,26 @@
 
 from typing import Literal
 
-Role = Literal["Admin", "Analyst", "Executive"]
+Role = Literal["Administrador", "Vendedor", "Soporte"]
 
-ALL_ROLES: tuple[Role, ...] = ("Admin", "Analyst", "Executive")
+ALL_ROLES: tuple[Role, ...] = ("Administrador", "Vendedor", "Soporte")
 
 PERMISSIONS: dict[str, tuple[Role, ...]] = {
     "dashboard:read": ALL_ROLES,
     "analytics:read": ALL_ROLES,
     "customers:read": ALL_ROLES,
-    "customers:write": ("Admin", "Executive"),
+    "customers:write": ("Administrador", "Vendedor"),
     "vehicles:read": ALL_ROLES,
-    "vehicles:write": ("Admin",),
+    "vehicles:write": ("Administrador",),
     "simulations:read": ALL_ROLES,
-    "simulations:write": ("Admin", "Executive"),
+    "simulations:write": ("Administrador", "Vendedor"),
     "applications:read": ALL_ROLES,
-    "applications:create": ("Admin", "Executive"),
-    "applications:evaluate": ("Admin", "Analyst"),
-    "settings:read": ("Admin",),
-    "settings:write": ("Admin",),
-    "users:manage": ("Admin",),
+    "applications:create": ("Administrador", "Vendedor"),
+    "applications:evaluate": ("Administrador", "Soporte"),
+    "settings:read": ("Administrador",),
+    "settings:write": ("Administrador",),
+    "users:manage": ("Administrador",),
+    "audit:read": ("Administrador", "Soporte"),
 }
 
 

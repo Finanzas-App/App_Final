@@ -8,7 +8,7 @@ export function MainLayout() {
   const { user, loading } = useAuth();
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface-muted bg-mesh">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <PageLoader message="Iniciando sesión..." />
       </div>
     );

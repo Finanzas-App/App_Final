@@ -40,20 +40,21 @@
     "customers": "Customers",
     "analytics": "Analytics",
     "settings": "Settings",
-    "users": "Users"
+    "users": "Users",
+    "audit": "Audit"
   },
   "roles": {
-    "Admin": {
+    "Administrador": {
       "label": "Administrator",
-      "description": "Configure parameters, vehicles and users. Full access."
+      "description": "Configures parameters, vehicles and users. Full system access."
     },
-    "Analyst": {
-      "label": "Credit Analyst",
-      "description": "Evaluates and approves/rejects financing applications."
+    "Vendedor": {
+      "label": "Sales Representative",
+      "description": "Registers customers, creates simulations and financing applications."
     },
-    "Executive": {
-      "label": "Sales Executive",
-      "description": "Registers customers, creates simulations and applications."
+    "Soporte": {
+      "label": "Support",
+      "description": "Evaluates applications, assists operations and reviews system audit logs."
     }
   },
   "status": {
@@ -245,6 +246,21 @@
     "subtitle": "Internal dealership user management",
     "created": "User created successfully",
     "reviewForm": "Please review the user form"
+  },
+  "audit": {
+    "title": "System Audit",
+    "subtitle": "Sensitive operations log and traceability",
+    "filterEntity": "Entity type",
+    "filterAction": "Action",
+    "allEntities": "All entities",
+    "allActions": "All actions",
+    "cols": {
+      "date": "Date",
+      "user": "User",
+      "action": "Action",
+      "entity": "Entity",
+      "ip": "IP"
+    }
   },
   "validation": {
     "required": "{{field}} is required",

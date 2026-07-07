@@ -12,9 +12,9 @@ import { mergeFieldErrors, parseApiError, type FieldErrors } from "../lib/errors
 import { validateUser, hasErrors } from "../lib/validation";
 
 const ROLE_COLORS: Record<Role, string> = {
-  Admin: "badge-purple",
-  Analyst: "badge-amber",
-  Executive: "badge-blue",
+  Administrador: "badge-purple",
+  Soporte: "badge-amber",
+  Vendedor: "badge-blue",
 };
 
 export default function UsersPage() {
@@ -22,7 +22,7 @@ export default function UsersPage() {
   const qc = useQueryClient();
   const toast = useToast();
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "Executive" as Role });
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "Vendedor" as Role });
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState("");
 
@@ -36,7 +36,7 @@ export default function UsersPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["users"] });
       setShowForm(false);
-      setForm({ name: "", email: "", password: "", role: "Executive" });
+      setForm({ name: "", email: "", password: "", role: "Vendedor" });
       setFieldErrors({});
       setFormError("");
       toast.success("Usuario creado correctamente");
@@ -94,9 +94,9 @@ export default function UsersPage() {
             <div>
               <label className="label-field">Rol</label>
               <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as Role })} className="input-field">
-                <option value="Executive">Ejecutivo comercial</option>
-                <option value="Analyst">Analista de crédito</option>
-                <option value="Admin">Administrador</option>
+                <option value="Vendedor">Vendedor</option>
+                <option value="Soporte">Soporte</option>
+                <option value="Administrador">Administrador</option>
               </select>
             </div>
           </div>

@@ -18,9 +18,9 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 def _make_users(db):
     users = [
-        User(name="Admin", email="admin@test.com", password_hash=get_password_hash("test123"), role="Admin"),
-        User(name="Analyst", email="analyst@test.com", password_hash=get_password_hash("test123"), role="Analyst"),
-        User(name="Executive", email="exec@test.com", password_hash=get_password_hash("test123"), role="Executive"),
+        User(name="Administrador", email="admin@test.com", password_hash=get_password_hash("test123"), role="Administrador"),
+        User(name="Soporte", email="soporte@test.com", password_hash=get_password_hash("test123"), role="Soporte"),
+        User(name="Vendedor", email="vendedor@test.com", password_hash=get_password_hash("test123"), role="Vendedor"),
     ]
     db.add_all(users)
     db.commit()
@@ -136,14 +136,14 @@ def test_admin_can_list_users(client):
     assert len(r.json()) == 3
 
 
-def test_executive_cannot_list_users(client):
-    token = _token(client, "exec@test.com")
+def test_vendedor_cannot_list_users(client):
+    token = _token(client, "vendedor@test.com")
     r = client.get("/api/v1/auth/users", headers=_auth(token))
     assert r.status_code == 403
 
 
-def test_executive_cannot_create_vehicle(client):
-    token = _token(client, "exec@test.com")
+def test_vendedor_cannot_create_vehicle(client):
+    token = _token(client, "vendedor@test.com")
     r = client.post(
         "/api/v1/vehicles",
         headers=_auth(token),
@@ -169,17 +169,38 @@ def test_application_activity_from_audit_logs(client):
         new_value=json.dumps({"status": "Approved", "decision_reason": "OK", "approved_amount": 100000}),
     )
 
-    token = _token(client, "analyst@test.com")
+    token = _token(client, "soporte@test.com")
     r = client.get("/api/v1/applications/activity", headers=_auth(token))
     assert r.status_code == 200
     data = r.json()
     assert len(data) == 1
     assert data[0]["action"] == "STATUS_CHANGE"
     assert "Solicitud #1" in data[0]["message"]
-    assert data[0]["user_name"] == "Analyst"
+    assert data[0]["user_name"] == "Soporte"
+
+
+def test_admin_can_list_audit_logs(client):
+    db = TestingSessionLocal()
+    _add_audit_log(db, action="LOGIN", entity_type="user")
+    token = _token(client, "admin@test.com")
+    r = client.get("/api/v1/audit/logs", headers=_auth(token))
+    assert r.status_code == 200
+    assert len(r.json()) >= 1
+
+
+def test_soporte_can_list_audit_logs(client):
+    token = _token(client, "soporte@test.com")
+    r = client.get("/api/v1/audit/logs", headers=_auth(token))
+    assert r.status_code == 200
+
+
+def test_vendedor_cannot_list_audit_logs(client):
+    token = _token(client, "vendedor@test.com")
+    r = client.get("/api/v1/audit/logs", headers=_auth(token))
+    assert r.status_code == 403
 
 
 def test_log_application_view_not_found(client):
-    token = _token(client, "analyst@test.com")
+    token = _token(client, "soporte@test.com")
     r = client.post("/api/v1/applications/999/view", headers=_auth(token))
     assert r.status_code == 404

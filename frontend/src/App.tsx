@@ -15,6 +15,7 @@ import ApplicationsPage from "./pages/ApplicationsPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import SettingsPage from "./pages/SettingsPage";
 import UsersPage from "./pages/UsersPage";
+import AuditPage from "./pages/AuditPage";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ export default function App() {
               <Route path="/simulations/:id" element={<RoleGuard permission="simulations:read"><SimulationDetailPage /></RoleGuard>} />
               <Route path="/applications" element={<RoleGuard permission="applications:read"><ApplicationsPage /></RoleGuard>} />
               <Route path="/analytics" element={<RoleGuard permission="analytics:read"><AnalyticsPage /></RoleGuard>} />
+              <Route path="/audit" element={<RoleGuard permission="audit:read"><AuditPage /></RoleGuard>} />
               <Route path="/settings" element={<RoleGuard permission="settings:read"><SettingsPage /></RoleGuard>} />
               <Route path="/users" element={<RoleGuard permission="users:manage"><UsersPage /></RoleGuard>} />
             </Route>

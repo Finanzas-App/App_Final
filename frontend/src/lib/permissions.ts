@@ -1,22 +1,23 @@
-export type Role = "Admin" | "Analyst" | "Executive";
+export type Role = "Administrador" | "Vendedor" | "Soporte";
 
-export const ROLES: Role[] = ["Admin", "Analyst", "Executive"];
+export const ROLES: Role[] = ["Administrador", "Vendedor", "Soporte"];
 
 const PERMISSIONS: Record<string, Role[]> = {
   "dashboard:read": ROLES,
   "analytics:read": ROLES,
   "customers:read": ROLES,
-  "customers:write": ["Admin", "Executive"],
+  "customers:write": ["Administrador", "Vendedor"],
   "vehicles:read": ROLES,
-  "vehicles:write": ["Admin"],
+  "vehicles:write": ["Administrador"],
   "simulations:read": ROLES,
-  "simulations:write": ["Admin", "Executive"],
+  "simulations:write": ["Administrador", "Vendedor"],
   "applications:read": ROLES,
-  "applications:create": ["Admin", "Executive"],
-  "applications:evaluate": ["Admin", "Analyst"],
-  "settings:read": ["Admin"],
-  "settings:write": ["Admin"],
-  "users:manage": ["Admin"],
+  "applications:create": ["Administrador", "Vendedor"],
+  "applications:evaluate": ["Administrador", "Soporte"],
+  "settings:read": ["Administrador"],
+  "settings:write": ["Administrador"],
+  "users:manage": ["Administrador"],
+  "audit:read": ["Administrador", "Soporte"],
 };
 
 /** Rutas en orden de prioridad para redirección cuando no hay permiso */
@@ -27,6 +28,7 @@ export const ROUTE_PERMISSIONS: { path: string; permission: string }[] = [
   { path: "/customers", permission: "customers:read" },
   { path: "/vehicles", permission: "vehicles:read" },
   { path: "/analytics", permission: "analytics:read" },
+  { path: "/audit", permission: "audit:read" },
   { path: "/settings", permission: "settings:read" },
   { path: "/users", permission: "users:manage" },
 ];
@@ -38,9 +40,9 @@ export function hasPermission(role: string | undefined, permission: string): boo
 
 export function getHomeRoute(role: string | undefined): string {
   switch (role) {
-    case "Analyst":
+    case "Soporte":
       return "/applications";
-    case "Executive":
+    case "Vendedor":
       return "/simulations";
     default:
       return "/";
@@ -55,13 +57,13 @@ export function getFirstAllowedRoute(role: string | undefined): string {
 }
 
 export const ROLE_LABELS: Record<Role, string> = {
-  Admin: "Administrador",
-  Analyst: "Analista de crédito",
-  Executive: "Ejecutivo comercial",
+  Administrador: "Administrador",
+  Vendedor: "Vendedor",
+  Soporte: "Soporte",
 };
 
 export const ROLE_DESCRIPTIONS: Record<Role, string> = {
-  Admin: "Configura parámetros, vehículos y usuarios. Acceso total.",
-  Analyst: "Evalúa y aprueba/rechaza solicitudes de financiamiento.",
-  Executive: "Registra clientes, crea simulaciones y solicitudes.",
+  Administrador: "Configura parámetros, vehículos y usuarios. Acceso total.",
+  Vendedor: "Registra clientes, crea simulaciones y solicitudes de financiamiento.",
+  Soporte: "Evalúa solicitudes, asiste operaciones y revisa la auditoría del sistema.",
 };

@@ -96,13 +96,13 @@ export default function SettingsPage() {
           <h3 className="font-semibold mb-4 text-slate-800">Parámetros Financieros</h3>
           <div className="form-grid">
             <div>
-              <label className="label-field">Moneda por Defecto</label>
+              <label className="label-field">Moneda por Defecto <HelpTooltip field="default_currency" /></label>
               <select value={form.default_currency} onChange={(e) => setForm({ ...form, default_currency: e.target.value })} className="input-field">
                 <option value="PEN">Soles (PEN)</option><option value="USD">Dólares (USD)</option>
               </select>
             </div>
             <div>
-              <label className="label-field">Tipo de Cambio</label>
+              <label className="label-field">Tipo de Cambio <HelpTooltip field="exchange_rate" /></label>
               <input type="number" step="0.01" value={form.exchange_rate} onChange={(e) => setForm({ ...form, exchange_rate: +e.target.value })} className="input-field" />
             </div>
             <div>
@@ -118,19 +118,19 @@ export default function SettingsPage() {
               <input type="number" value={form.default_capitalization} onChange={(e) => setForm({ ...form, default_capitalization: +e.target.value })} className="input-field" />
             </div>
             <div>
-              <label className="label-field">Seguro Vehicular Mensual</label>
+              <label className="label-field">Seguro Vehicular Mensual <HelpTooltip field="insurance_vehicle" /></label>
               <input type="number" value={form.insurance_vehicle_monthly} onChange={(e) => setForm({ ...form, insurance_vehicle_monthly: +e.target.value })} className="input-field" />
             </div>
             <div>
-              <label className="label-field">Seguro Desgravamen Mensual</label>
+              <label className="label-field">Seguro Desgravamen Mensual <HelpTooltip field="insurance_life" /></label>
               <input type="number" value={form.insurance_life_monthly} onChange={(e) => setForm({ ...form, insurance_life_monthly: +e.target.value })} className="input-field" />
             </div>
             <div>
-              <label className="label-field">Portes Mensuales</label>
+              <label className="label-field">Portes Mensuales <HelpTooltip field="portes" /></label>
               <input type="number" value={form.portes_monthly} onChange={(e) => setForm({ ...form, portes_monthly: +e.target.value })} className="input-field" />
             </div>
             <div>
-              <label className="label-field">Comisión (%)</label>
+              <label className="label-field">Comisión (%) <HelpTooltip field="commission" /></label>
               <input type="number" step="0.01" value={form.commission_rate} onChange={(e) => setForm({ ...form, commission_rate: +e.target.value })} className="input-field" />
             </div>
           </div>

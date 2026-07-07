@@ -44,10 +44,25 @@ def seed():
             print("Seed already applied, skipping.")
             return
 
-        admin = User(name="Admin Demo", email="admin@autofinance.pro", password_hash=get_password_hash("admin123"), role="Admin")
-        analyst = User(name="Ana Analyst", email="analyst@autofinance.pro", password_hash=get_password_hash("analyst123"), role="Analyst")
-        executive = User(name="Carlos Executive", email="executive@autofinance.pro", password_hash=get_password_hash("exec123"), role="Executive")
-        db.add_all([admin, analyst, executive])
+        admin = User(
+            name="Roberto Administrador",
+            email="admin@autofinance.pro",
+            password_hash=get_password_hash("admin123"),
+            role="Administrador",
+        )
+        soporte = User(
+            name="Ana Soporte",
+            email="soporte@autofinance.pro",
+            password_hash=get_password_hash("soporte123"),
+            role="Soporte",
+        )
+        vendedor = User(
+            name="Carlos Vendedor",
+            email="vendedor@autofinance.pro",
+            password_hash=get_password_hash("vend123"),
+            role="Vendedor",
+        )
+        db.add_all([admin, soporte, vendedor])
         db.flush()
 
         settings = FinancialSettings(
@@ -74,19 +89,19 @@ def seed():
                 nombres="Juan", apellidos="Pérez García", dni="74859632", edad=32,
                 ingreso_mensual=8500, email="juanperez@gmail.com", telefono="987654321",
                 direccion="Av. Javier Prado 1234, Lima", esta_trabajando=True, es_dependiente=True,
-                created_by=executive.id,
+                created_by=vendedor.id,
             ),
             Customer(
                 nombres="María", apellidos="Fernández Rojas", dni="71589632", edad=35,
                 ingreso_mensual=12000, email="mariafernandez@gmail.com", telefono="956321478",
                 direccion="Calle Los Olivos 456, Miraflores", esta_trabajando=True, es_dependiente=True,
-                created_by=executive.id,
+                created_by=vendedor.id,
             ),
             Customer(
                 nombres="Lucía", apellidos="Torres Vega", dni="87654321", edad=28,
                 ingreso_mensual=6200, email="lucia.torres@email.com", telefono="998877665",
                 direccion="Jr. Ucayali 789, Surco", esta_trabajando=True, es_dependiente=False,
-                created_by=executive.id,
+                created_by=vendedor.id,
             ),
         ]
         db.add_all(customers)
@@ -125,7 +140,7 @@ def seed():
             customer_id=customers[0].id,
             vehicle_id=vehicles[0].id,
             financiera_id=financiera_id,
-            created_by=executive.id,
+            created_by=vendedor.id,
             vehicle_price=95000,
             down_payment=20000,
             amount_financed=r1.amount_financed,
@@ -179,7 +194,7 @@ def seed():
             customer_id=customers[1].id,
             vehicle_id=vehicles[1].id,
             financiera_id=financiera_id,
-            created_by=executive.id,
+            created_by=vendedor.id,
             vehicle_price=32000,
             down_payment=7000,
             amount_financed=r2.amount_financed,
@@ -211,7 +226,7 @@ def seed():
         db.flush()
         _add_schedule(db, sim2.id, r2)
 
-        db.add(Application(simulation_id=sim1.id, status="Approved", analyst_id=analyst.id, approved_amount=75000))
+        db.add(Application(simulation_id=sim1.id, status="Approved", analyst_id=soporte.id, approved_amount=75000))
         db.add(Application(simulation_id=sim2.id, status="Pending"))
 
         db.commit()

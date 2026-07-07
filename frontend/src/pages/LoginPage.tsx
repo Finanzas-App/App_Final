@@ -12,21 +12,21 @@ import { FormAlert, FieldError } from "../components/ui/FormFeedback";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
 
 const DEMO_USERS: { role: Role; email: string; password: string }[] = [
-  { role: "Admin", email: "admin@autofinance.pro", password: "admin123" },
-  { role: "Analyst", email: "analyst@autofinance.pro", password: "analyst123" },
-  { role: "Executive", email: "executive@autofinance.pro", password: "exec123" },
+  { role: "Administrador", email: "admin@autofinance.pro", password: "admin123" },
+  { role: "Soporte", email: "soporte@autofinance.pro", password: "soporte123" },
+  { role: "Vendedor", email: "vendedor@autofinance.pro", password: "vend123" },
 ];
 
 const ROLE_ICONS: Record<Role, typeof Shield> = {
-  Admin: Shield,
-  Analyst: BarChart3,
-  Executive: Car,
+  Administrador: Shield,
+  Soporte: BarChart3,
+  Vendedor: Car,
 };
 
 export default function LoginPage() {
   const { t } = useTranslation();
-  const [email, setEmail] = useState("executive@autofinance.pro");
-  const [password, setPassword] = useState("exec123");
+  const [email, setEmail] = useState("vendedor@autofinance.pro");
+  const [password, setPassword] = useState("vend123");
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
