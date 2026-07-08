@@ -73,6 +73,12 @@ export default function SimulationsPage() {
     );
   }, [selectedVehicle, form.down_payment, form.balloon_percent, form.balloon_base]);
 
+  const financedAmount = useMemo(() => {
+    if (!selectedVehicle) return null;
+    if (step === 4 && preview) return preview.amount_financed;
+    return Math.max(0, selectedVehicle.price - form.down_payment);
+  }, [selectedVehicle, form.down_payment, step, preview]);
+
   const lowestInterestId = useMemo(() => {
     if (comparisons.length === 0) return null;
     return comparisons.reduce((best, item) =>
@@ -242,6 +248,13 @@ export default function SimulationsPage() {
           <div className="flex gap-2 mb-6">{[1, 2, 3, 4].map((s) => (
             <div key={s} className={`flex-1 h-1.5 rounded-full transition-colors duration-300 ${step >= s ? "bg-brand-600" : "bg-slate-200"}`} />
           ))}</div>
+          {selectedVehicle && financedAmount != null && (
+            <div className="mb-6 p-4 bg-brand-50 border border-brand-100 rounded-xl text-sm flex flex-wrap gap-x-6 gap-y-1">
+              <p><strong>{t("simulations.vehicleLabel")}:</strong> {selectedVehicle.brand} {selectedVehicle.model}</p>
+              <p><strong>{t("simulations.priceLabel")}:</strong> {formatCurrency(selectedVehicle.price, selectedVehicle.currency)}</p>
+              <p><strong>{t("simulations.financedAmountLabel")}:</strong> {formatCurrency(financedAmount, selectedVehicle.currency)}</p>
+            </div>
+          )}
           <FormAlert message={formError} type="error" />
           {step === 1 && (
             <div className="space-y-4">
@@ -368,13 +381,6 @@ export default function SimulationsPage() {
                   <label htmlFor="ins_l" className="text-sm text-gray-600">{t("simulations.includeLifeInsurance")} <HelpTooltip field="include_insurance_life" /></label>
                 </div>
               </div>
-              {selectedVehicle && (
-                <div className="p-4 bg-brand-50 border border-brand-100 rounded-xl text-sm">
-                  <p><strong>{t("simulations.vehicleLabel")}:</strong> {selectedVehicle.brand} {selectedVehicle.model}</p>
-                  <p><strong>{t("simulations.priceLabel")}:</strong> {formatCurrency(selectedVehicle.price, selectedVehicle.currency)}</p>
-                  <p><strong>{t("simulations.financedAmountLabel")}:</strong> {formatCurrency(selectedVehicle.price - form.down_payment, selectedVehicle.currency)}</p>
-                </div>
-              )}
               <div className="flex flex-wrap gap-3">
                 <button type="button" onClick={() => setStep(2)} className="btn-secondary">{t("common.previous")}</button>
                 <button type="button" onClick={handlePreview} disabled={previewMutation.isPending} className="btn-primary">
@@ -394,12 +400,13 @@ export default function SimulationsPage() {
               <div>
                 <h4 className="font-medium text-slate-800 mb-3">{t("simulations.previewTitle")}</h4>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <KpiCard title={t("simulations.priceLabel")} value={formatCurrency(preview.vehicle_price, preview.currency)} />
                   <KpiCard title={t("simulationDetail.amountFinanced")} value={formatCurrency(preview.amount_financed, preview.currency)} />
                   <KpiCard title={t("simulationDetail.monthlyPayment")} value={formatCurrency(preview.total_monthly_payment, preview.currency)} variant="brand" />
                   <KpiCard title={t("simulationDetail.totalInterest")} value={formatCurrency(preview.total_interest, preview.currency)} variant="amber" />
-                  <KpiCard title={t("simulationDetail.balloonPayment")} value={formatCurrency(preview.balloon_amount, preview.currency)} />
                 </div>
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
+                  <KpiCard title={t("simulationDetail.balloonPayment")} value={formatCurrency(preview.balloon_amount, preview.currency)} />
                   <KpiCard title={t("simulationDetail.tcea")} value={preview.tcea ? formatPercent(preview.tcea) : "-"} />
                   <KpiCard title={t("simulationDetail.van")} value={preview.van != null ? formatCurrency(preview.van, preview.currency) : "-"} />
                   <KpiCard title={t("simulationDetail.term")} value={`${preview.term_months} ${t("simulationDetail.months")}`} />

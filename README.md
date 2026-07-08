@@ -5,7 +5,7 @@ Plataforma fintech B2B para **financiamiento vehicular** bajo la modalidad **Com
 ## Requisitos
 
 - Docker y Docker Compose
-- Puertos por defecto en Docker: `5174` (frontend), `8001` (backend), `5433` (PostgreSQL en host)
+- Puertos por defecto en Docker: `5173` (frontend), `8000` (backend), `5432` (PostgreSQL)
 - Si esos puertos están libres y prefieres los clásicos (`5173`/`8000`/`5432`), edita `docker-compose.yml`
 
 ## Desarrollo local
@@ -17,9 +17,9 @@ docker compose up --build
 
 | Servicio   | URL                          |
 |------------|------------------------------|
-| Frontend   | http://localhost:5174        |
-| Backend    | http://localhost:8001        |
-| Swagger    | http://localhost:8001/docs   |
+| Frontend   | http://localhost:5173        |
+| Backend    | http://localhost:8000        |
+| Swagger    | http://localhost:8000/docs   |
 
 El desarrollo local usa `frontend/Dockerfile.dev` (hot reload). Al levantar el backend se ejecutan migraciones Alembic y el seed de datos demo.
 

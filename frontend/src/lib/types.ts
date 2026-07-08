@@ -56,6 +56,7 @@ export interface ComparisonScenario {
   preview: SimulationPreview;
 }
 
+export interface ApplicationActivity {
   id: number;
   application_id: number | null;
   action: string;
