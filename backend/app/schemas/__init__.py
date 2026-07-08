@@ -276,6 +276,36 @@ class SimulationListItem(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class SimulationPreviewResponse(BaseModel):
+    vehicle_price: float
+    down_payment: float
+    amount_financed: float
+    currency: str
+    rate_type: str
+    rate_value: float
+    capitalization: int | None
+    grace_type: str
+    grace_months: int
+    term_months: int
+    balloon_percent: float
+    balloon_base: str
+    balloon_amount: float
+    tea: float
+    tem: float
+    monthly_payment: float
+    total_interest: float
+    total_monthly_payment: float
+    include_insurance_vehicle: bool
+    include_insurance_life: bool
+    insurance_vehicle: float
+    insurance_life: float
+    portes: float
+    van: float | None
+    tir_monthly: float | None
+    tcea: float | None
+    schedule: list[ScheduleRowResponse] = []
+
+
 class ApplicationCreate(BaseModel):
     simulation_id: int
 

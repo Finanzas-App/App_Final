@@ -300,6 +300,62 @@ def test_vendedor_can_create_simulation(client):
     assert len(data["schedule"]) == 48
 
 
+def test_vendedor_can_preview_simulation(client):
+    db = TestingSessionLocal()
+    fin, customer, vehicle = _seed_simulation_prereqs(db)
+    token = _token(client, "vendedor@test.com")
+    payload = {
+        "customer_id": customer.id,
+        "vehicle_id": vehicle.id,
+        "financiera_id": fin.id,
+        "down_payment": 15000,
+        "rate_type": "TEA",
+        "rate_value": 0.12,
+        "capitalization": 12,
+        "grace_type": "none",
+        "grace_months": 0,
+        "term_months": 48,
+        "balloon_percent": 0.25,
+        "balloon_base": "vehicle",
+        "include_insurance_vehicle": True,
+        "include_insurance_life": True,
+        "portes": 10,
+    }
+    r = client.post("/api/v1/simulations/preview", headers=_auth(token), json=payload)
+    assert r.status_code == 200
+    data = r.json()
+    assert data["amount_financed"] > 0
+    assert data["total_interest"] > 0
+    assert len(data["schedule"]) == 48
+
+
+def test_preview_rejects_balloon_above_financed(client):
+    db = TestingSessionLocal()
+    fin, customer, vehicle = _seed_simulation_prereqs(db)
+    token = _token(client, "vendedor@test.com")
+    r = client.post(
+        "/api/v1/simulations/preview",
+        headers=_auth(token),
+        json={
+            "customer_id": customer.id,
+            "vehicle_id": vehicle.id,
+            "financiera_id": fin.id,
+            "down_payment": 70000,
+            "rate_type": "TEA",
+            "rate_value": 0.12,
+            "term_months": 48,
+            "grace_type": "none",
+            "grace_months": 0,
+            "balloon_percent": 0.25,
+            "balloon_base": "vehicle",
+            "include_insurance_vehicle": True,
+            "include_insurance_life": True,
+            "portes": 10,
+        },
+    )
+    assert r.status_code == 400
+
+
 def test_admin_can_deactivate_user(client):
     db = TestingSessionLocal()
     extra = User(name="Extra", email="extra@test.com", password_hash=get_password_hash("test123"), role="Vendedor")

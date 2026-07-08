@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { AppLayout } from "../layout/AppLayout";
 import { HelpTooltip } from "../components/HelpTooltip";
+import { PercentInput } from "../components/ui/PercentInput";
 import { settingsApi } from "../lib/api";
 import { FormAlert, FieldError, inputClass } from "../components/ui/FormFeedback";
 import { useToast } from "../components/ui/Toast";
@@ -112,7 +113,10 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="label-field">{t("settings.balloonPercent")} <HelpTooltip field="balloon_percent" /></label>
-              <input type="number" step="0.01" value={form.default_balloon_percent} onChange={(e) => setForm({ ...form, default_balloon_percent: +e.target.value })} className="input-field" />
+              <PercentInput
+                value={form.default_balloon_percent}
+                onChange={(decimal) => setForm({ ...form, default_balloon_percent: decimal })}
+              />
             </div>
             <div>
               <label className="label-field">{t("settings.capitalization")} <HelpTooltip field="capitalization" /></label>

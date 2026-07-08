@@ -1,5 +1,6 @@
 import type { FieldErrors } from "./errors";
 import i18n from "../i18n";
+import { computeBalloonAmount, type BalloonBase } from "./simulationHelpers";
 
 function req(value: unknown, label: string): string | undefined {
   if (value === null || value === undefined) return i18n.t("validation.required", { field: label });
@@ -81,16 +82,44 @@ export function validateSimulationStep1(form: { customer_id: number; vehicle_id:
   return errors;
 }
 
-export function validateSimulationStep2(form: {
-  down_payment: number; rate_value: number; term_months: number; balloon_percent: number;
-}): FieldErrors {
+export function validateSimulationStep2(
+  form: {
+    down_payment: number;
+    rate_value: number;
+    term_months: number;
+    balloon_percent: number;
+    balloon_base?: BalloonBase;
+    grace_months?: number;
+  },
+  vehicle?: { price: number },
+): FieldErrors {
   const errors: FieldErrors = {};
   if (form.rate_value <= 0) errors.rate_value = i18n.t("validation.positivePrice");
   if (form.term_months <= 0) errors.term_months = i18n.t("validation.positivePrice");
+  if (form.grace_months != null && form.grace_months >= form.term_months) {
+    errors.grace_months = i18n.t("validation.graceLessThanTerm");
+  }
   if (form.balloon_percent <= 0 || form.balloon_percent >= 1) {
-    errors.balloon_percent = i18n.t("validation.positivePrice");
+    errors.balloon_percent = i18n.t("validation.balloonPercentRange");
   }
   if (form.down_payment < 0) errors.down_payment = i18n.t("validation.positivePrice");
+
+  if (vehicle && form.balloon_percent > 0 && form.balloon_percent < 1) {
+    const amountFinanced = vehicle.price - form.down_payment;
+    if (amountFinanced <= 0) {
+      errors.down_payment = i18n.t("simulations.downPaymentMustBeLess");
+    } else {
+      const balloonAmount = computeBalloonAmount(
+        vehicle.price,
+        form.down_payment,
+        form.balloon_percent,
+        form.balloon_base ?? "vehicle",
+      );
+      if (balloonAmount > amountFinanced) {
+        errors.balloon_percent = i18n.t("validation.balloonExceedsFinanced");
+      }
+    }
+  }
   return errors;
 }
 

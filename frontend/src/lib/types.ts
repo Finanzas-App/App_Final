@@ -28,7 +28,34 @@ export interface ApplicationStatusForm {
   approved_amount: number;
 }
 
-export interface ApplicationActivity {
+export interface SimulationPreview {
+  vehicle_price: number;
+  down_payment: number;
+  amount_financed: number;
+  currency: string;
+  rate_type: string;
+  rate_value: number;
+  grace_type: string;
+  grace_months: number;
+  term_months: number;
+  balloon_percent: number;
+  balloon_base: string;
+  balloon_amount: number;
+  monthly_payment: number;
+  total_interest: number;
+  total_monthly_payment: number;
+  tcea: number | null;
+  van: number | null;
+  schedule: { period: number; payment: number; interest: number; amortization: number }[];
+}
+
+export interface ComparisonScenario {
+  id: string;
+  label: string;
+  form: Record<string, unknown>;
+  preview: SimulationPreview;
+}
+
   id: number;
   application_id: number | null;
   action: string;

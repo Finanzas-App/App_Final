@@ -110,6 +110,20 @@ describe("validateSimulationStep2", () => {
     });
     expect(errors.balloon_percent).toBeDefined();
   });
+
+  it("rejects balloon greater than financed amount", () => {
+    const errors = validateSimulationStep2(
+      {
+        down_payment: 40000,
+        rate_value: 0.12,
+        term_months: 48,
+        balloon_percent: 0.25,
+        balloon_base: "vehicle",
+      },
+      { price: 48000 },
+    );
+    expect(errors.balloon_percent).toBeDefined();
+  });
 });
 
 describe("validateApplicationStatus", () => {

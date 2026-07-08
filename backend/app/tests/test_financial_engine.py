@@ -110,3 +110,7 @@ class TestValidations:
     def test_zero_rate(self):
         with pytest.raises(ValueError, match="tasa"):
             validate_simulation_inputs(95000, 20000, 0, 48, 0, 0.25)
+
+    def test_balloon_exceeds_financed(self):
+        with pytest.raises(ValueError, match="monto financiado"):
+            validate_simulation_inputs(48000, 44000, 0.12, 48, 0, 0.25, "vehicle")

@@ -119,6 +119,8 @@ def validate_simulation_inputs(
     balloon_amount = calculate_balloon_amount(vehicle_price, amount_financed, balloon_percent, balloon_base)
     if balloon_amount >= vehicle_price:
         raise ValueError("La cuota balón debe ser menor al precio del vehículo")
+    if balloon_amount > amount_financed:
+        raise ValueError("La cuota balón no puede ser mayor al monto financiado")
     if amount_financed <= 0:
         raise ValueError("El monto financiado debe ser mayor a cero")
 

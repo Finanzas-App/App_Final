@@ -66,6 +66,7 @@ export const vehiclesApi = {
 export const simulationsApi = {
   list: () => api.get("/simulations"),
   get: (id: number) => api.get(`/simulations/${id}`),
+  preview: (data: object) => api.post("/simulations/preview", data),
   create: (data: object) => api.post("/simulations", data),
   clone: (id: number) => api.post(`/simulations/${id}/clone`),
   export: (id: number) => api.get(`/simulations/${id}/export`, { responseType: "blob" }),

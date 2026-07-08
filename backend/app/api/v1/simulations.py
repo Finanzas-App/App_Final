@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.api.deps import require_permission
 from app.db.session import get_db
 from app.models import Customer, FinancialSettings, Financiera, PaymentSchedule, Simulation, User, Vehicle
-from app.schemas import ScheduleRowResponse, SimulationCreate, SimulationListItem, SimulationResponse
+from app.schemas import ScheduleRowResponse, SimulationCreate, SimulationListItem, SimulationPreviewResponse, SimulationResponse
 from app.services.applications import create_application_for_simulation
 from app.services.audit import log_audit
 from app.services.financial_engine import run_simulation
@@ -24,26 +24,26 @@ def _generate_code(db: Session) -> str:
     return f"SIM-{datetime.now().strftime('%Y%m')}-{count:04d}"
 
 
-def _build_simulation(db: Session, data: SimulationCreate, current_user: User) -> Simulation:
-    customer = db.query(Customer).filter(Customer.id == data.customer_id, Customer.is_active == True).first()
+def _resolve_simulation_context(db: Session, data: SimulationCreate) -> tuple[Vehicle, float, float, float, float, float, datetime]:
     vehicle = db.query(Vehicle).filter(Vehicle.id == data.vehicle_id, Vehicle.is_active == True).first()
-    if not customer:
-        raise HTTPException(status_code=404, detail="Cliente no encontrado")
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehículo no encontrado")
-    if data.financiera_id:
-        fin = db.query(Financiera).filter(Financiera.id == data.financiera_id, Financiera.is_active == True).first()
-        if not fin:
-            raise HTTPException(status_code=404, detail="Financiera no encontrada")
 
     settings = db.query(FinancialSettings).first()
-    cok = settings.cok_annual if settings else 0.10
     ins_v = data.insurance_vehicle if data.insurance_vehicle is not None else (settings.insurance_vehicle_monthly if settings else 180.0)
     ins_l = data.insurance_life if data.insurance_life is not None else (settings.insurance_life_monthly if settings else 45.0)
     portes = data.portes if data.portes is not None else (settings.portes_monthly if settings else 10.0)
     commission = data.commission if data.commission is not None else (vehicle.price * (settings.commission_rate if settings else 0.0))
+    cok = settings.cok_annual if settings else 0.10
     disbursement = data.disbursement_date or datetime.now()
+    return vehicle, ins_v, ins_l, portes, commission, cok, disbursement
 
+
+def _run_simulation_for_data(
+    db: Session,
+    data: SimulationCreate,
+) -> tuple:
+    vehicle, ins_v, ins_l, portes, commission, cok, disbursement = _resolve_simulation_context(db, data)
     try:
         result = run_simulation(
             vehicle_price=vehicle.price,
@@ -66,7 +66,83 @@ def _build_simulation(db: Session, data: SimulationCreate, current_user: User) -
             start_date=disbursement,
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    return vehicle, ins_v, ins_l, portes, commission, disbursement, result
+
+
+def _schedule_to_response(result) -> list[ScheduleRowResponse]:
+    return [
+        ScheduleRowResponse(
+            period=row.period,
+            due_date=row.due_date,
+            opening_balance=row.opening_balance,
+            interest=row.interest,
+            amortization=row.amortization,
+            insurance_vehicle=row.insurance_vehicle,
+            insurance_life=row.insurance_life,
+            portes=row.portes,
+            payment=row.payment,
+            balloon_payment=row.balloon_payment,
+            closing_balance=row.closing_balance,
+            is_grace_period=row.is_grace_period,
+            payment_status=row.payment_status,
+        )
+        for row in result.schedule
+    ]
+
+
+def _build_preview_response(
+    data: SimulationCreate,
+    vehicle: Vehicle,
+    ins_v: float,
+    ins_l: float,
+    portes: float,
+    result,
+) -> SimulationPreviewResponse:
+    ins_v_applied = ins_v if data.include_insurance_vehicle else 0.0
+    ins_l_applied = ins_l if data.include_insurance_life else 0.0
+    total_monthly_payment = result.monthly_payment + ins_v_applied + ins_l_applied + portes
+    return SimulationPreviewResponse(
+        vehicle_price=vehicle.price,
+        down_payment=data.down_payment,
+        amount_financed=result.amount_financed,
+        currency=vehicle.currency,
+        rate_type=data.rate_type,
+        rate_value=data.rate_value,
+        capitalization=data.capitalization,
+        grace_type=data.grace_type,
+        grace_months=data.grace_months,
+        term_months=data.term_months,
+        balloon_percent=data.balloon_percent,
+        balloon_base=data.balloon_base,
+        balloon_amount=result.balloon_amount,
+        tea=result.tea,
+        tem=result.tem,
+        monthly_payment=result.monthly_payment,
+        total_interest=result.total_interest,
+        total_monthly_payment=total_monthly_payment,
+        include_insurance_vehicle=data.include_insurance_vehicle,
+        include_insurance_life=data.include_insurance_life,
+        insurance_vehicle=ins_v_applied,
+        insurance_life=ins_l_applied,
+        portes=portes,
+        van=result.van,
+        tir_monthly=result.tir_monthly,
+        tcea=result.tcea,
+        schedule=_schedule_to_response(result),
+    )
+
+
+def _build_simulation(db: Session, data: SimulationCreate, current_user: User) -> Simulation:
+    customer = db.query(Customer).filter(Customer.id == data.customer_id, Customer.is_active == True).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+    if data.financiera_id:
+        fin = db.query(Financiera).filter(Financiera.id == data.financiera_id, Financiera.is_active == True).first()
+        if not fin:
+            raise HTTPException(status_code=404, detail="Financiera no encontrada")
+
+    vehicle, ins_v, ins_l, portes, commission, disbursement, result = _run_simulation_for_data(db, data)
 
     sim = Simulation(
         code=_generate_code(db),
@@ -163,6 +239,24 @@ def _to_response(sim: Simulation) -> SimulationResponse:
 @router.get("", response_model=list[SimulationListItem])
 def list_simulations(db: Session = Depends(get_db), _: User = Depends(require_permission("simulations:read"))):
     return db.query(Simulation).order_by(Simulation.id.desc()).all()
+
+
+@router.post("/preview", response_model=SimulationPreviewResponse)
+def preview_simulation(
+    data: SimulationCreate,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission("simulations:read")),
+):
+    customer = db.query(Customer).filter(Customer.id == data.customer_id, Customer.is_active == True).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+    if data.financiera_id:
+        fin = db.query(Financiera).filter(Financiera.id == data.financiera_id, Financiera.is_active == True).first()
+        if not fin:
+            raise HTTPException(status_code=404, detail="Financiera no encontrada")
+
+    vehicle, ins_v, ins_l, portes, _commission, _disbursement, result = _run_simulation_for_data(db, data)
+    return _build_preview_response(data, vehicle, ins_v, ins_l, portes, result)
 
 
 @router.post("", response_model=SimulationResponse, status_code=status.HTTP_201_CREATED)
